@@ -1,0 +1,20 @@
+<package>
+  <description brief="robodart_control">
+
+     robodart_control
+
+  </description>
+  <author>sp</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/robodart_control</url>
+  <depend package="rospy"/>
+  <depend package="std_msgs"/>
+  <depend package="moveit_commander"/>
+  <depend package="tf2"/>
+  <depend package="actionlib"/>
+  <depend package="control_msgs"/>
+
+</package>
+
+
