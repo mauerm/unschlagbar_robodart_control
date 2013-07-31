@@ -1,37 +1,37 @@
 #! /usr/bin/env python
 
 PACKAGE='robodart_control'
-import observeDartboard
-import roslib
-roslib.load_manifest(PACKAGE)
-from geometry_msgs.msg import PoseStamped
-import rospy
-import sys
 
+import roslib
+roslib.load_manifest('robodart_control')
+
+import rospy
+
+import sys
+import pickle
+import time
 import threading
 
 from Tkinter import Tk, Button, Frame, OptionMenu, StringVar
 
-from PyQt4 import QtGui,QtCore
-
 from moveit_commander import MoveGroupCommander
 from math import pi
 from math import atan2
-
+import tf
 from tf.transformations import quaternion_from_euler
 from tf.transformations import euler_from_quaternion
 from tf import TransformListener
-
-import tf
 
 import actionlib
 
 from control_msgs.msg import GripperCommandAction
 from control_msgs.msg import GripperCommandGoal
+from geometry_msgs.msg import PoseStamped
 
-import sys
-import pickle
-import time
+from robodart_vision.srv import Point
+from std_srvs.srv import Empty
+
+
 
 
 class Robodart_control():
@@ -83,13 +83,7 @@ class Robodart_control():
     #init tf listener
     self.tf_listener = TransformListener()
     
-    #bringup vision
-    cv.NamedWindow("Image window", 1)
-    self.bridge = CvBridge()
-    self.my_robodart_vision = observeDartboard.ObserveDartboard(0)
-    self.image_sub = rospy.Subscriber("UI122xLE_C/image_raw", Image, self.my_robodart_vision.receive_image_from_camera_callback)
 
-    
   def throw_dart(self):  
     self.pickup_dart()
     if self.is_first_throw:
@@ -98,23 +92,19 @@ class Robodart_control():
       self.move_relative_to_last_position(self.dart_center_offset)
     
     print "Take reference picture"  
-    self.my_robodart_vision.take_reference_picture()
+    self.take_reference_picture()
     self.open_gripper()
     
     print "Sleep 2 seconds"
     time.sleep(2) #drop time #TODO measure
     
     print "Get dart to center offset"
-    (x_offset, y_offset) = self.my_robodart_vision.get_dart_center_offset()
-    self.dart_center_offset[0] = x_offset
-    self.dart_center_offset[1] = y_offset
+    self.dart_center_offset = self.get_dart_center_offset()
     
   def center_dart_board(self):
     print "Center Dart Board"
-    self.move_to_drop_position()
-    (x_offset, y_offset) = self.my_robodart_vision.get_bullseye_center_offset()
     
-    self.move_relative_to_last_position([x_offset, y_offset])
+    self.move_relative_to_last_position(self.get_bullseye_center_offset())
     
   def pickup_dart(self):
     print 'Pickup dart'
@@ -135,13 +125,13 @@ class Robodart_control():
   def open_gripper(self):
     print "Open Gripper"
     goal = GripperCommandGoal()
-    goal.command.position = -0.6
+    goal.command.position = 0.2
     self.client.send_goal(goal)
     
   def close_gripper(self):
     print "Close Gripper"
     goal = GripperCommandGoal()
-    goal.command.position = -0.85    
+    goal.command.position = -0.11    
     self.client.send_goal(goal)
        
   def move_relative_to_last_position(self, offset_vector = (0,0)):
@@ -244,7 +234,27 @@ class Robodart_control():
     return self.saved_positions[name]
   
 
-    
+  def take_reference_picture(self):
+    resp = self.call_service('/robodart_vision/take_reference_picture', Empty)
+    return resp
+
+  def get_bullseye_center_offset(self):
+    resp = self.call_service('/robodart_vision/get_bullseye_center_offset', Point)
+    return [resp.x, resp.y]
+
+  def get_dart_center_offset(self):
+    resp = self.call_service('/robodart_vision/get_dart_center_offset', Point)
+    return [resp.x, resp.y]
+
+  def call_service(self, serviceName, srv):
+    rospy.wait_for_service(serviceName)
+    try:
+      service_method = rospy.ServiceProxy(serviceName, srv)
+      resp = service_method()
+      return resp
+    except rospy.ServiceException, e:
+      print "Service call failed: %s"%e
+      return None
   
     
 def exit():
