@@ -44,7 +44,7 @@ class Robodart_control():
   
   CAMERA_OFFSET = [0,0] #This tupel describes the constant offset between the camera and the actual dart drop position.
   
-  AIMING_CENTER_POSITION = (0.4,0) #the aiming is done relative to this position, AIMING_CENTER_POSITION is defined in REFERENCE_FRAME
+  AIMING_CENTER_POSITION = (0.478,0) #the aiming is done relative to this position, AIMING_CENTER_POSITION is defined in REFERENCE_FRAME
   
   last_position = [0,0]
   
@@ -78,7 +78,7 @@ class Robodart_control():
     #init move_group
     self.group = MoveGroupCommander('arm')
     self.group.set_pose_reference_frame(self.REFERENCE_FRAME)
-    #self.group.set_orientation_tolerance([0.3,0.3,0,3])
+    self.group.set_goal_tolerance(0.0001)
     
     #init tf listener
     self.tf_listener = TransformListener()
@@ -103,9 +103,19 @@ class Robodart_control():
     
   def center_dart_board(self):
     print "Center Dart Board"
+    self.move_to_drop_position()
+
+    print "Sleep 2 seconds"
+    time.sleep(2) #drop time #TODO measure
     
     self.move_relative_to_last_position(self.get_bullseye_center_offset())
-    
+
+  """
+  def calibrate(self):
+    print 'Calibrating'
+    self.center_dart_board()
+    self.open_gripper()
+  """
   def pickup_dart(self):
     print 'Pickup dart'
     
@@ -120,21 +130,25 @@ class Robodart_control():
     
   def move_to_drop_position(self):
     print 'Move to drop position'
-    self.move_to_position(self.AIMING_CENTER_POSITION)
+    self.move_to_position_in_robot_frame(self.AIMING_CENTER_POSITION)
     
   def open_gripper(self):
     print "Open Gripper"
     goal = GripperCommandGoal()
-    goal.command.position = 0.2
+    #positition open max 0.3
+    goal.command.position = 0.3
     self.client.send_goal(goal)
     
   def close_gripper(self):
     print "Close Gripper"
     goal = GripperCommandGoal()
-    goal.command.position = -0.11    
+    #position close max -0.44
+    goal.command.position = -0.19   
     self.client.send_goal(goal)
        
   def move_relative_to_last_position(self, offset_vector = (0,0)):
+    
+
     """Moves to the position defined by last_position + offset_vector.
     
     Arguments:
@@ -144,10 +158,20 @@ class Robodart_control():
     
     new_position = [self.last_position[0] + offset_vector[0], self.last_position[1] + offset_vector[1]]
     
-    self.move_to_position(new_position)
+    self.move_to_position_in_gripper_frame(new_position)
     
     print 'New Position: ', new_position
     
+  def move_to_position_in_gripper_frame(self, target_point = [0,0]):
+    self.group.set_pose_reference_frame(self.GRIPPER_FRAME)
+
+    self.move_to_position(target_point)
+
+  def move_to_position_in_robot_frame(self, target_point = [0,0]):
+    self.group.set_pose_reference_frame(self.REFERENCE_FRAME)
+
+    self.move_to_position(target_point)
+   
     
   def move_to_position(self, target_point = [0,0]):
     """Moves to the position given by target_point in self.REFERENCE_FRAME
@@ -156,6 +180,8 @@ class Robodart_control():
     >>target_point -- the offset as vector (default [0,0])
     """
     print 'Move to position'
+
+      
     
     #save position for relative movement
     self.last_position = list(target_point)
@@ -170,7 +196,7 @@ class Robodart_control():
     
     #p.pose.orientation.w = 1
     
-    q = quaternion_from_euler(0, 0, 0)
+    q = quaternion_from_euler(-0.032, -0.0376, 0)
     
     p.pose.orientation.x = q[0]
     p.pose.orientation.y = q[1]
