@@ -137,10 +137,10 @@ class Robodart_control():
     print 'Move to pre pickup position'
     p = PoseStamped()
     p.header.frame_id = self.REFERENCE_FRAME
-    p.pose.position.x = -0.36246
-    p.pose.position.y = -0.2487
+    p.pose.position.x = -0.336
+    p.pose.position.y = -0.22
     
-    p.pose.position.z = 0.492327
+    p.pose.position.z = 0.517
     
     #p.pose.orientation.w = 1
     
@@ -169,7 +169,7 @@ class Robodart_control():
     time.sleep(wait_time)
     print 'Move to pickup position'
 
-    p.pose.position.z = 0.425327
+    p.pose.position.z = 0.45
 
     self.group.set_pose_target(p, self.GRIPPER_FRAME)
     self.group.go()
@@ -178,7 +178,7 @@ class Robodart_control():
     self.close_gripper()
     time.sleep(wait_time)
     print 'Move to post pickup position'
-    p.pose.position.z = 0.492327
+    p.pose.position.z = 0.517
 
     self.group.set_pose_target(p, self.GRIPPER_FRAME)
     self.group.go()
@@ -274,7 +274,7 @@ class Robodart_control():
     goal = GripperCommandGoal()
     #position close max -0.44
     #goal.command.position = -0.19
-    goal.command.position = -0.21 
+    goal.command.position = -0.23 
     self.client.send_goal(goal)
        
   def move_relative_to_last_position(self, offset_vector = (0,0)):
