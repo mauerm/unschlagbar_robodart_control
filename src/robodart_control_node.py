@@ -14,7 +14,7 @@ import threading
 
 from Tkinter import Tk, Button, Frame, OptionMenu, StringVar
 
-from moveit_commander import MoveGroupCommander
+from moveit_commander import MoveGroupCommander, PlanningSceneInterface
 from math import pi
 from math import atan2
 import tf
@@ -64,6 +64,8 @@ class Robodart_control():
    
   #tk dropdown var
   var = None
+
+  scene = None
   
 
  
@@ -83,9 +85,20 @@ class Robodart_control():
     #init tf listener
     self.tf_listener = TransformListener()
     
+    self.scene = PlanningSceneInterface()
 
   def throw_dart(self):  
+    #self.move_to_drop_position()
     self.pickup_dart()
+    self.move_to_drop_position()
+    #Wait until dart is ready
+    time.sleep(3)
+    self.open_gripper()
+    #Sleep just because of Timeouts
+    time.sleep(1)
+    self.move_home()
+
+    """
     if self.is_first_throw:
       self.center_dart_board()
     else: 
@@ -100,13 +113,14 @@ class Robodart_control():
     
     print "Get dart to center offset"
     self.dart_center_offset = self.get_dart_center_offset()
+    """
     
   def center_dart_board(self):
     print "Center Dart Board"
     self.move_to_drop_position()
 
-    print "Sleep 2 seconds"
-    time.sleep(2) #drop time #TODO measure
+    print "Sleep 4 seconds"
+    time.sleep(4) #drop time #TODO measure
     
     self.move_relative_to_last_position(self.get_bullseye_center_offset())
 
@@ -117,15 +131,131 @@ class Robodart_control():
     self.open_gripper()
   """
   def pickup_dart(self):
-    print 'Pickup dart'
+    print 'Starting Pickup dart'
+
+
+    print 'Move to pre pickup position'
+    p = PoseStamped()
+    p.header.frame_id = self.REFERENCE_FRAME
+    p.pose.position.x = -0.336
+    p.pose.position.y = -0.22
     
-    #TODO:
+    p.pose.position.z = 0.517
     
+    #p.pose.orientation.w = 1
+    
+    q = quaternion_from_euler(-0.032, -0.0376, 0)
+    
+    p.pose.orientation.x = q[0]
+    p.pose.orientation.y = q[1]
+    p.pose.orientation.z = q[2]
+    p.pose.orientation.w = q[3]
+    
+
+    #this is only needed for 5Dof Katana Robot
+    self.replace_yaw_angle_with_reachable_value(p)
+
+    print "Planning frame: " ,self.group.get_planning_frame()
+    print "Pose reference frame: ",self.group.get_pose_reference_frame()
+
+    self.group.set_pose_target(p, self.GRIPPER_FRAME)
+    self.group.go()
+    
+    wait_time = 2
+
+    time.sleep(wait_time)
+
+    self.open_gripper()
+    time.sleep(wait_time)
+    print 'Move to pickup position'
+
+    p.pose.position.z = 0.45
+
+    self.group.set_pose_target(p, self.GRIPPER_FRAME)
+    self.group.go()
+
+    time.sleep(wait_time)
     self.close_gripper()
+    time.sleep(wait_time)
+    print 'Move to post pickup position'
+    p.pose.position.z = 0.517
+
+    self.group.set_pose_target(p, self.GRIPPER_FRAME)
+    self.group.go()
+
+    time.sleep(wait_time)
+
+    """try in joint space
+    self.group.set_named_target('dart_1')
+    self.group.go()
+    #self.move_to_position_in_gripper_frame([0.4,0], 0.38)
+
+    """
+
+    """ first try with pick, not working because the moveit python bindings have no function pick("obejct", grasp)
+    self.scene.remove_world_object("test")
+    p = PoseStamped()
+    p.header.frame_id = self.REFERENCE_FRAME
+   
+    p.pose.orientation.w = 1.0
+    p.pose.position.x = 0.35
+    p.pose.position.y = 0.0
+    p.pose.position.z = 0.4
+
+    print "Pickup pose: ", p
+    
+    self.scene.add_box("test", p, (0.01, 0.01, 0.1))
+
+    self.group.pick("test")
+    """
+
+    
+
+    """ second try with cartesian path, faild because path is not executed?
+    p = PoseStamped()
+    p.header.frame_id = self.REFERENCE_FRAME
+    p.pose.position.x = 0.4
+    p.pose.position.y = 0
+    #p.pose.position.z = 0.
+    
+    p.pose.position.z = 0.38
+    
+    #p.pose.orientation.w = 1
+    
+    q = quaternion_from_euler(-0.032, -0.0376, 0)
+    
+    p.pose.orientation.x = q[0]
+    p.pose.orientation.y = q[1]
+    p.pose.orientation.z = q[2]
+    p.pose.orientation.w = q[3]
+    
+    
+    #this is only needed for 5Dof Katana Robot
+    self.replace_yaw_angle_with_reachable_value(p)
+
+    print 'Desired pose', p.pose
+
+    waypoints = [p.pose]
+    (trajectory, fraction_completed) = self.group.compute_cartesian_path(waypoints, 0.01, 0.03)
+
+    print 'Trajectory', trajectory
+
+    self.group.execute(trajectory)
+    """
+
+    """3rd try, not working, no goal state found, perhaps python function not working?
+    #0..5: x,y,z,r,p,y    2 = z-axis
+    self.group.shift_pose_target(0, -0.01, self.GRIPPER_FRAME)
+
+    self.group.go()
+
+    """
+
+   
      
   def move_home(self):  
     print 'Move to home position'  
-    self.group.set_named_target('home rotated')
+    self.group.set_named_target('home_stable')
     self.group.go()
     
   def move_to_drop_position(self):
@@ -136,14 +266,15 @@ class Robodart_control():
     print "Open Gripper"
     goal = GripperCommandGoal()
     #positition open max 0.3
-    goal.command.position = 0.3
+    goal.command.position = 0.0
     self.client.send_goal(goal)
     
   def close_gripper(self):
     print "Close Gripper"
     goal = GripperCommandGoal()
     #position close max -0.44
-    goal.command.position = -0.19   
+    #goal.command.position = -0.19
+    goal.command.position = -0.23 
     self.client.send_goal(goal)
        
   def move_relative_to_last_position(self, offset_vector = (0,0)):
@@ -162,18 +293,18 @@ class Robodart_control():
     
     print 'New Position: ', new_position
     
-  def move_to_position_in_gripper_frame(self, target_point = [0,0]):
+  def move_to_position_in_gripper_frame(self, target_point = [0,0], z_axis = 0.4):
     self.group.set_pose_reference_frame(self.GRIPPER_FRAME)
 
     self.move_to_position(target_point)
 
-  def move_to_position_in_robot_frame(self, target_point = [0,0]):
+  def move_to_position_in_robot_frame(self, target_point = [0,0], z_axis = 0.4):
     self.group.set_pose_reference_frame(self.REFERENCE_FRAME)
 
     self.move_to_position(target_point)
    
     
-  def move_to_position(self, target_point = [0,0]):
+  def move_to_position(self, target_point = [0,0], z_axis = 0.4):
     """Moves to the position given by target_point in self.REFERENCE_FRAME
     
     Arguments:
@@ -190,9 +321,8 @@ class Robodart_control():
     p.header.frame_id = self.REFERENCE_FRAME
     p.pose.position.x = target_point[0]
     p.pose.position.y = target_point[1]
-    #p.pose.position.z = 0.
     
-    p.pose.position.z = 0.4
+    p.pose.position.z = z_axis
     
     #p.pose.orientation.w = 1
     
@@ -315,14 +445,20 @@ if __name__ == '__main__':
   mm_btn = Button(gui, command = my_robodart_control.get_current_gripper_position, text = 'Get Gripper Position', height=1, width=15)
   mm_btn.grid(row=4, column=0)
   
-  mm_btn = Button(gui, command = my_robodart_control.throw_dart, text = 'Throw Dart', height=1, width=15)
+  mm_btn = Button(gui, command = my_robodart_control.pickup_dart, text = 'pickup_dart', height=1, width=15)
   mm_btn.grid(row=5, column=0)
+
+  mm_btn = Button(gui, command = my_robodart_control.throw_dart, text = 'throw_dart', height=1, width=15)
+  mm_btn.grid(row=6, column=0)
+
+
+
   
   mm_btn = Button(gui, command = my_robodart_control.center_dart_board, text = 'Center Dart Board', height=1, width=15)
-  mm_btn.grid(row=6, column=0)
+  mm_btn.grid(row=7, column=0)
   
   mm_btn = Button(gui, command = exit, text = 'Exit', height=1, width=15)
-  mm_btn.grid(row=7, column=0)
+  mm_btn.grid(row=8, column=0)
   
   """
   # initial value
