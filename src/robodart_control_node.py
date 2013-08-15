@@ -47,6 +47,7 @@ class Robodart_control():
   AIMING_CENTER_POSITION = (0.478,0) #the aiming is done relative to this position, AIMING_CENTER_POSITION is defined in REFERENCE_FRAME
   
   last_position = [0,0]
+  last_z_position = 0
   
   dart_center_offset = [0,0]
   
@@ -60,8 +61,13 @@ class Robodart_control():
   
   my_robodart_vision = None
   
-  saved_positions = {'dart1_position':[0,0]}
-   
+  dart_positions = []
+  dart_positions.append((-0.336,-0.218)) #x and y positions of dart number 0
+  dart_positions.append((-0.338,-0.158)) #x and y positions of dart number 1
+  dart_positions.append((-0.34,-0.098)) #x and y positions of dart number 2
+
+  current_dart_number = 1
+
   #tk dropdown var
   var = None
 
@@ -89,7 +95,7 @@ class Robodart_control():
 
   def throw_dart(self):  
     #self.move_to_drop_position()
-    self.pickup_dart()
+    self.pickup_dart(self.current_dart_number)
     self.move_to_drop_position()
     #Wait until dart is ready
     time.sleep(3)
@@ -98,11 +104,13 @@ class Robodart_control():
     time.sleep(1)
     self.move_home()
 
+    self.current_dart_number += 1
+
     """
     if self.is_first_throw:
       self.center_dart_board()
     else: 
-      self.move_relative_to_last_position(self.dart_center_offset)
+      self.move_relative_to_last_position_in_gripper_frame(self.dart_center_offset)
     
     print "Take reference picture"  
     self.take_reference_picture()
@@ -122,7 +130,7 @@ class Robodart_control():
     print "Sleep 4 seconds"
     time.sleep(4) #drop time #TODO measure
     
-    self.move_relative_to_last_position(self.get_bullseye_center_offset())
+    self.move_relative_to_last_position_in_gripper_frame(self.get_bullseye_center_offset())
 
   """
   def calibrate(self):
@@ -130,129 +138,31 @@ class Robodart_control():
     self.center_dart_board()
     self.open_gripper()
   """
-  def pickup_dart(self):
+
+  def pickup_dart(self, dart_number):
     print 'Starting Pickup dart'
 
-
-    print 'Move to pre pickup position'
-    p = PoseStamped()
-    p.header.frame_id = self.REFERENCE_FRAME
-    p.pose.position.x = -0.336
-    p.pose.position.y = -0.22
-    
-    p.pose.position.z = 0.517
-    
-    #p.pose.orientation.w = 1
-    
-    q = quaternion_from_euler(-0.032, -0.0376, 0)
-    
-    p.pose.orientation.x = q[0]
-    p.pose.orientation.y = q[1]
-    p.pose.orientation.z = q[2]
-    p.pose.orientation.w = q[3]
-    
-
-    #this is only needed for 5Dof Katana Robot
-    self.replace_yaw_angle_with_reachable_value(p)
-
-    print "Planning frame: " ,self.group.get_planning_frame()
-    print "Pose reference frame: ",self.group.get_pose_reference_frame()
-
-    self.group.set_pose_target(p, self.GRIPPER_FRAME)
-    self.group.go()
-    
-    wait_time = 2
-
-    time.sleep(wait_time)
-
     self.open_gripper()
-    time.sleep(wait_time)
+
+    print 'Move above first dart pickup position'
+    self.move_to_position_in_robot_frame(self.dart_positions[0], 0.517)
+
+    print 'Move above desired dart pickup position'
+    self.move_to_position_in_robot_frame(self.dart_positions[dart_number], 0.517)
+    
+
     print 'Move to pickup position'
 
-    p.pose.position.z = 0.45
+    self.move_relative_to_last_position_in_robot_frame([0,0],-0.067)
 
-    self.group.set_pose_target(p, self.GRIPPER_FRAME)
-    self.group.go()
-
-    time.sleep(wait_time)
     self.close_gripper()
-    time.sleep(wait_time)
-    print 'Move to post pickup position'
-    p.pose.position.z = 0.517
+ 
+    print 'Move above pickup position'
+    self.move_relative_to_last_position_in_robot_frame([0,0],+0.067)
 
-    self.group.set_pose_target(p, self.GRIPPER_FRAME)
-    self.group.go()
+    print 'Move away horizontally in x direction'
+    self.move_relative_to_last_position_in_robot_frame([0.03,0])
 
-    time.sleep(wait_time)
-
-    """try in joint space
-    self.group.set_named_target('dart_1')
-    self.group.go()
-    #self.move_to_position_in_gripper_frame([0.4,0], 0.38)
-
-    """
-
-    """ first try with pick, not working because the moveit python bindings have no function pick("obejct", grasp)
-    self.scene.remove_world_object("test")
-    p = PoseStamped()
-    p.header.frame_id = self.REFERENCE_FRAME
-   
-    p.pose.orientation.w = 1.0
-    p.pose.position.x = 0.35
-    p.pose.position.y = 0.0
-    p.pose.position.z = 0.4
-
-    print "Pickup pose: ", p
-    
-    self.scene.add_box("test", p, (0.01, 0.01, 0.1))
-
-    self.group.pick("test")
-    """
-
-    
-
-    """ second try with cartesian path, faild because path is not executed?
-    p = PoseStamped()
-    p.header.frame_id = self.REFERENCE_FRAME
-    p.pose.position.x = 0.4
-    p.pose.position.y = 0
-    #p.pose.position.z = 0.
-    
-    p.pose.position.z = 0.38
-    
-    #p.pose.orientation.w = 1
-    
-    q = quaternion_from_euler(-0.032, -0.0376, 0)
-    
-    p.pose.orientation.x = q[0]
-    p.pose.orientation.y = q[1]
-    p.pose.orientation.z = q[2]
-    p.pose.orientation.w = q[3]
-    
-    
-    #this is only needed for 5Dof Katana Robot
-    self.replace_yaw_angle_with_reachable_value(p)
-
-    print 'Desired pose', p.pose
-
-    waypoints = [p.pose]
-    (trajectory, fraction_completed) = self.group.compute_cartesian_path(waypoints, 0.01, 0.03)
-
-    print 'Trajectory', trajectory
-
-    self.group.execute(trajectory)
-    """
-
-    """3rd try, not working, no goal state found, perhaps python function not working?
-    #0..5: x,y,z,r,p,y    2 = z-axis
-    self.group.shift_pose_target(0, -0.01, self.GRIPPER_FRAME)
-
-    self.group.go()
-
-    """
-
-   
-     
   def move_home(self):  
     print 'Move to home position'  
     self.group.set_named_target('home_stable')
@@ -277,31 +187,48 @@ class Robodart_control():
     goal.command.position = -0.23 
     self.client.send_goal(goal)
        
-  def move_relative_to_last_position(self, offset_vector = (0,0)):
+  def move_relative_to_last_position_in_gripper_frame(self, offset_vector = (0,0), z_offset = 0):
     
 
     """Moves to the position defined by last_position + offset_vector.
     
     Arguments:
     >>offset_vector -- the offset as tupel(x,y) (default (0,0))
+    >>z_offset -- the z axis offset (default 0)
     """
     print 'Move relative to last position: ' , self.last_position, 'offset: ', offset_vector
     
     new_position = [self.last_position[0] + offset_vector[0], self.last_position[1] + offset_vector[1]]
     
-    self.move_to_position_in_gripper_frame(new_position)
+    self.move_to_position_in_gripper_frame(new_position, self.last_z_position + z_offset)
     
     print 'New Position: ', new_position
+
+
+  def move_relative_to_last_position_in_robot_frame(self, offset_vector = (0,0), z_offset = 0):
+    """Moves to the position defined by last_position + offset_vector.
     
+    Arguments:
+    >>offset_vector -- the offset as tupel(x,y) (default (0,0))
+    >>z_offset -- the z axis offset (default 0)
+    """
+    print 'Move relative to last position: ' , self.last_position, 'offset: ', offset_vector
+    
+    new_position = [self.last_position[0] + offset_vector[0], self.last_position[1] + offset_vector[1]]
+    
+    self.move_to_position_in_robot_frame(new_position, self.last_z_position + z_offset)
+    
+    print 'New Position: ', new_position
+
   def move_to_position_in_gripper_frame(self, target_point = [0,0], z_axis = 0.4):
     self.group.set_pose_reference_frame(self.GRIPPER_FRAME)
 
-    self.move_to_position(target_point)
+    self.move_to_position(target_point, z_axis)
 
   def move_to_position_in_robot_frame(self, target_point = [0,0], z_axis = 0.4):
     self.group.set_pose_reference_frame(self.REFERENCE_FRAME)
 
-    self.move_to_position(target_point)
+    self.move_to_position(target_point, z_axis)
    
     
   def move_to_position(self, target_point = [0,0], z_axis = 0.4):
@@ -316,6 +243,7 @@ class Robodart_control():
     
     #save position for relative movement
     self.last_position = list(target_point)
+    self.last_z_position = z_axis
     
     p = PoseStamped()
     p.header.frame_id = self.REFERENCE_FRAME
