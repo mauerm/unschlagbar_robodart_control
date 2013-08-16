@@ -39,43 +39,44 @@ from std_srvs.srv import Empty
 class Robodart_control():
   
   # import ipdb; ipdb.set_trace()
-  
-  REFERENCE_FRAME = 'katana_base_link' # All positions are defined relative to this frame, 
-                     # a new frame should be created in the urdf to define a aim frame
-  GRIPPER_FRAME = 'katana_gripper_tool_frame' #Name of the gripper frame
-  
-  CAMERA_OFFSET = [0,0] #This tupel describes the constant offset between the camera and the actual dart drop position.
-  
-  AIMING_CENTER_POSITION = (0.478,0) #the aiming is done relative to this position, AIMING_CENTER_POSITION is defined in REFERENCE_FRAME
-  
-  last_position = [0,0]
-  last_z_position = 0
-  last_offset = [0,0]
-  
-  dart_center_offset = [0,0]
-  
-  is_first_throw = True
-  
-  client = None
-  
-  group = None
-  
-  tf_listener = None
-  
-  my_robodart_vision = None
-  
+
+  current_dart_number = 0 #The Number of the current Dart to throw (starting with 0)
+
+  ##CONSTANTS
   dart_positions = []
   dart_positions.append((-0.336,-0.218)) #x and y positions of dart number 0
   dart_positions.append((-0.338,-0.158)) #x and y positions of dart number 1
   dart_positions.append((-0.34,-0.098)) #x and y positions of dart number 2
 
-  current_dart_number = 0
+  #TODO: teach positions
+  dart_positions.append((-0.34,-0.098)) #x and y positions of dart number 3
+  dart_positions.append((-0.34,-0.098)) #x and y positions of dart number 4
+  dart_positions.append((-0.34,-0.098)) #x and y positions of dart number 5
+  
+  REFERENCE_FRAME = 'katana_base_link' #All positions are defined relative to this frame (robot frame)
+  GRIPPER_FRAME = 'katana_gripper_tool_frame' #Name of the gripper frame
+  AIMING_CENTER_POSITION = (0.478,0) #the aiming is done relative to this position, AIMING_CENTER_POSITION is defined in REFERENCE_FRAME
+  
+  pre_pickup_height = 0.517 #The height in REFERENCE_FRAME above the dart
+  lift_offset = 0.067 #The lift height of the dart
+  move_away_after_pickup_offset = 0.03 #Distance to move away from dart horizontally after pickup
+  ##CONSTANDS END
+
+  last_position = [0,0]
+  last_z_position = 0
+  last_offset = [0,0]
+  client = None
+  group = None
+  tf_listener = None
+  my_robodart_vision = None
 
   #tk dropdown var
   var = None
-
   scene = None
-  
+
+  #the following variables can be deleted?!
+  #dart_center_offset = [0,0]
+  #is_first_throw = True
 
  
   def __init__(self):
@@ -101,7 +102,7 @@ class Robodart_control():
     #saved_pos = self.get_current_gripper_position()
     #time.sleep(5)
     #self.take_reference_picture()    
-    self.pickup_dart(self.current_dart_number)
+    self.pickup_dart()
     #self.move_to_drop_position()
     self.center_dart_board()
     #self.center_dart_board(True)  
@@ -124,7 +125,6 @@ class Robodart_control():
     #print self.get_dart_center_offset()
     self.move_home()
 
-    self.current_dart_number += 1
 
     """
     if self.is_first_throw:
@@ -160,31 +160,46 @@ class Robodart_control():
     self.open_gripper()
   """
 
-  def pickup_dart(self, dart_number):
-    say("Pfeil holen")
+  def pickup_dart(self):
+    say("Ich hole mir Pfeil nummer " + str(self.current_dart_number + 1))
+
+    self.look_at_right_magazin()
 
     print 'Starting Pickup dart'
 
     self.open_gripper()
 
-    print 'Move above first dart pickup position'
-    self.move_to_position_in_robot_frame(self.dart_positions[0], 0.517)
+    print 'Move above first dart pickup position of the right or left magazin depending on the number'
+    if self.current_dart_number < 3:
+      
+      self.move_to_position_in_robot_frame(self.dart_positions[0], self.pre_pickup_height)
+    else:
+      self.move_to_position_in_robot_frame(self.dart_positions[-1], self.pre_pickup_height)
+
 
     print 'Move above desired dart pickup position'
-    self.move_to_position_in_robot_frame(self.dart_positions[dart_number], 0.517)
+    self.move_to_position_in_robot_frame(self.dart_positions[self.current_dart_number], self.pre_pickup_height)
     
+    #if darts are available increment current_dart_number
+    if self.current_dart_number < len(self.dart_positions) - 1:
+      self.current_dart_number += 1
+
+    #if no more darts are available start from the beginning
+    else:
+      self.current_dart_number = 0
 
     print 'Move to pickup position'
 
-    self.move_relative_to_last_position_in_robot_frame([0,0],-0.067)
+    self.move_relative_to_last_position_in_robot_frame([0,0],-self.lift_offset)
 
     self.close_gripper()
  
     print 'Move above pickup position'
-    self.move_relative_to_last_position_in_robot_frame([0,0],+0.067)
+    self.move_relative_to_last_position_in_robot_frame([0,0],+self.lift_offset)
 
     print 'Move away horizontally in x direction'
-    self.move_relative_to_last_position_in_robot_frame([0.03,0])
+    self.move_relative_to_last_position_in_robot_frame([self.move_away_after_pickup_offset,0])
+
 
   def move_home(self):  
     print 'Move to home position'  
@@ -211,8 +226,6 @@ class Robodart_control():
     self.client.send_goal(goal)
        
   def move_relative_to_last_position_in_gripper_frame(self, offset_vector = (0,0), z_offset = 0):
-    
-
     """Moves to the position defined by last_position + offset_vector.
     
     Arguments:
@@ -262,8 +275,6 @@ class Robodart_control():
     """
     print 'Move to position'
 
-      
-    
     #save position for relative movement
     self.last_position = list(target_point)
     self.last_z_position = z_axis
@@ -284,7 +295,6 @@ class Robodart_control():
     p.pose.orientation.z = q[2]
     p.pose.orientation.w = q[3]
     
-    
     #this is only needed for 5Dof Katana Robot
     self.replace_yaw_angle_with_reachable_value(p)
 
@@ -293,8 +303,6 @@ class Robodart_control():
     
     #group.set_rpy_target([0, 0, 0],"katana_gripper_tool_frame")
     #group.set_position_target([p.pose.position.x,p.pose.position.y,p.pose.position.z], GRIPPER_FRAME)
-    
-   
     
     self.group.set_pose_target(p, self.GRIPPER_FRAME)
     
@@ -334,13 +342,11 @@ class Robodart_control():
     self.saved_positions[name] = self.get_current_gripper_position()
     pickle.dump(self.saved_positions, open('positions.p', 'wb'))
     '''
-    
-    
+
   def get_gripper_position_by_name(self, name):
     self.saved_positions.update(pickle.load(open('positions.p', 'rb')))  
     return self.saved_positions[name]
   
-
   def take_reference_picture(self):
     resp = self.call_service('/robodart_vision/take_reference_picture', Empty)
     return resp
@@ -352,6 +358,23 @@ class Robodart_control():
   def get_dart_center_offset(self):
     resp = self.call_service('/robodart_vision/get_dart_center_offset', Point)
     return [resp.x, resp.y]
+
+
+  def look_at_right_magazin():
+    resp = self.call_service('robodart_control/look_at_right_magazin', Empty)
+    return resp
+
+  def look_at_left_magazin():
+    print 'look_at_left_magazin'
+
+  def look_at_home():
+    print 'look_at_home'
+
+  def look_busy():
+    print 'look_busy'
+
+  def look_weird():
+    print 'look_weird'
 
   def call_service(self, serviceName, srv):
     rospy.wait_for_service(serviceName)
@@ -367,6 +390,12 @@ class Robodart_control():
 def exit():
 
   sys.exit("Successfully shut down")
+
+def stop():
+  print 'Stop all movements'
+  #TODO: stop alle movements
+
+  
   
     
 if __name__ == '__main__':
@@ -402,22 +431,13 @@ if __name__ == '__main__':
   mm_btn = Button(gui, command = my_robodart_control.throw_dart, text = 'throw_dart', height=1, width=15)
   mm_btn.grid(row=6, column=0)
 
-
-
-  
   mm_btn = Button(gui, command = my_robodart_control.center_dart_board, text = 'Center Dart Board', height=1, width=15)
   mm_btn.grid(row=7, column=0)
-  
-  mm_btn = Button(gui, command = exit, text = 'Exit', height=1, width=15)
+
+  mm_btn = Button(gui, command = stop, text = 'Stop', height=1, width=15)
   mm_btn.grid(row=8, column=0)
   
-  """
-  # initial value
-  self.var = StringVar(gui)
-  self.var.set('aiming_center_position')
-  mm_option_menu = OptionMenu(gui, self.var, *my_robodart_control.saved_positions, command = my_robodart_control.save_current_gripper_position)
-  mm_option_menu.grid(row=6, column=0)
-"""
-     
+  mm_btn = Button(gui, command = exit, text = 'Exit', height=1, width=15)
+  mm_btn.grid(row=9, column=0)
 
   gui.mainloop()
