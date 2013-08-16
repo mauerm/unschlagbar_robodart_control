@@ -12,6 +12,8 @@ import pickle
 import time
 import threading
 
+from tts import say
+
 from Tkinter import Tk, Button, Frame, OptionMenu, StringVar
 
 from moveit_commander import MoveGroupCommander, PlanningSceneInterface
@@ -48,6 +50,7 @@ class Robodart_control():
   
   last_position = [0,0]
   last_z_position = 0
+  last_offset = [0,0]
   
   dart_center_offset = [0,0]
   
@@ -66,7 +69,7 @@ class Robodart_control():
   dart_positions.append((-0.338,-0.158)) #x and y positions of dart number 1
   dart_positions.append((-0.34,-0.098)) #x and y positions of dart number 2
 
-  current_dart_number = 1
+  current_dart_number = 0
 
   #tk dropdown var
   var = None
@@ -94,14 +97,31 @@ class Robodart_control():
     self.scene = PlanningSceneInterface()
 
   def throw_dart(self):  
-    #self.move_to_drop_position()
+    #self.center_dart_board()
+    #saved_pos = self.get_current_gripper_position()
+    #time.sleep(5)
+    #self.take_reference_picture()    
     self.pickup_dart(self.current_dart_number)
-    self.move_to_drop_position()
-    #Wait until dart is ready
-    time.sleep(3)
+    #self.move_to_drop_position()
+    self.center_dart_board()
+    #self.center_dart_board(True)  
+    #self.move_to_position_in_robot_frame(saved_pos)
+
+    say("Vorsicht. Abwurf in.")
+    time.sleep(2)
+    say("Drei")
+    time.sleep(1)
+    say("zwei")
+    time.sleep(1)
+    say("eins")
+    time.sleep(1)
+    say("Abwurf!")
+
     self.open_gripper()
     #Sleep just because of Timeouts
-    time.sleep(1)
+    #time.sleep(10)
+    
+    #print self.get_dart_center_offset()
     self.move_home()
 
     self.current_dart_number += 1
@@ -123,14 +143,15 @@ class Robodart_control():
     self.dart_center_offset = self.get_dart_center_offset()
     """
     
-  def center_dart_board(self):
+  def center_dart_board(self, use_last = False):
     print "Center Dart Board"
     self.move_to_drop_position()
-
+    say("Berechne Ziel position.")
     print "Sleep 4 seconds"
-    time.sleep(4) #drop time #TODO measure
-    
-    self.move_relative_to_last_position_in_gripper_frame(self.get_bullseye_center_offset())
+    time.sleep(3) #drop time #TODO measure
+    if not use_last:
+      self.last_offset = self.get_bullseye_center_offset()
+    self.move_relative_to_last_position_in_gripper_frame(self.last_offset)
 
   """
   def calibrate(self):
@@ -140,6 +161,8 @@ class Robodart_control():
   """
 
   def pickup_dart(self, dart_number):
+    say("Pfeil holen")
+
     print 'Starting Pickup dart'
 
     self.open_gripper()
@@ -305,12 +328,12 @@ class Robodart_control():
     return trans
   
   def save_current_gripper_position(self):
-    """
+    '''
     sf = 'value is %s' % self.var.get()
     
     self.saved_positions[name] = self.get_current_gripper_position()
     pickle.dump(self.saved_positions, open('positions.p', 'wb'))
-    """
+    '''
     
     
   def get_gripper_position_by_name(self, name):
