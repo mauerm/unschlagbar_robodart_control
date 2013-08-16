@@ -97,14 +97,14 @@ class Robodart_control():
     self.scene = PlanningSceneInterface()
 
   def throw_dart(self):  
-    #self.center_dart_board()
-    #saved_pos = self.get_current_gripper_position()
-    #time.sleep(5)
-    #self.take_reference_picture()    
+    self.center_dart_board()
+    saved_pos = self.get_current_gripper_position()
+    time.sleep(8)
+    self.take_reference_picture()    
     self.pickup_dart(self.current_dart_number)
     #self.move_to_drop_position()
-    self.center_dart_board()
-    #self.center_dart_board(True)  
+    #self.center_dart_board()
+    self.center_dart_board(True)  
     #self.move_to_position_in_robot_frame(saved_pos)
 
     say("Vorsicht. Abwurf in.")
@@ -119,9 +119,9 @@ class Robodart_control():
 
     self.open_gripper()
     #Sleep just because of Timeouts
-    #time.sleep(10)
+    time.sleep(5)
     
-    #print self.get_dart_center_offset()
+    print self.get_dart_center_offset()
     self.move_home()
 
     self.current_dart_number += 1
