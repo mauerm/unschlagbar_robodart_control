@@ -6,6 +6,9 @@ import gst
 import os
 import sys
 import hashlib
+import roslib.packages
+
+TTS_PACKAGE_NAME = 'robodart_control'
 
 def download(fileName, url):
   os.system('wget -q -U Mozilla -O "'+fileName+'" "'+url+'"')
@@ -21,11 +24,10 @@ def say(text, offline = False, redownload = False):
   
   music_stream_uri = 'http://translate.google.com/translate_tts?tl=de&q=' + tts
 
-  filePath = 'tts/'
+  filePath = roslib.packages.get_pkg_dir(TTS_PACKAGE_NAME) + "/src/"
+
   if not os.path.exists(filePath):
-    filePath = 'src/tts/'
-    if not os.path.exists(filePath):
-      print "Couldn't find tts Folder"
+    print "Couldn't find tts Folder"
   
   if not offline:
     if redownload or not os.path.exists(filePath + fileName):
