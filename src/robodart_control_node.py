@@ -12,9 +12,11 @@ import pickle
 import time
 import threading
 
+from tts import say
+
 from Tkinter import Tk, Button, Frame, OptionMenu, StringVar
 
-from moveit_commander import MoveGroupCommander
+from moveit_commander import MoveGroupCommander, PlanningSceneInterface
 from math import pi
 from math import atan2
 import tf
@@ -47,6 +49,8 @@ class Robodart_control():
   AIMING_CENTER_POSITION = (0.478,0) #the aiming is done relative to this position, AIMING_CENTER_POSITION is defined in REFERENCE_FRAME
   
   last_position = [0,0]
+  last_z_position = 0
+  last_offset = [0,0]
   
   dart_center_offset = [0,0]
   
@@ -60,10 +64,17 @@ class Robodart_control():
   
   my_robodart_vision = None
   
-  saved_positions = {'dart1_position':[0,0]}
-   
+  dart_positions = []
+  dart_positions.append((-0.336,-0.218)) #x and y positions of dart number 0
+  dart_positions.append((-0.338,-0.158)) #x and y positions of dart number 1
+  dart_positions.append((-0.34,-0.098)) #x and y positions of dart number 2
+
+  current_dart_number = 0
+
   #tk dropdown var
   var = None
+
+  scene = None
   
 
  
@@ -83,13 +94,43 @@ class Robodart_control():
     #init tf listener
     self.tf_listener = TransformListener()
     
+    self.scene = PlanningSceneInterface()
 
   def throw_dart(self):  
-    self.pickup_dart()
+    #self.center_dart_board()
+    #saved_pos = self.get_current_gripper_position()
+    #time.sleep(5)
+    #self.take_reference_picture()    
+    self.pickup_dart(self.current_dart_number)
+    #self.move_to_drop_position()
+    self.center_dart_board()
+    #self.center_dart_board(True)  
+    #self.move_to_position_in_robot_frame(saved_pos)
+
+    say("Vorsicht. Abwurf in.")
+    time.sleep(2)
+    say("Drei")
+    time.sleep(1)
+    say("zwei")
+    time.sleep(1)
+    say("eins")
+    time.sleep(1)
+    say("Abwurf!")
+
+    self.open_gripper()
+    #Sleep just because of Timeouts
+    #time.sleep(10)
+    
+    #print self.get_dart_center_offset()
+    self.move_home()
+
+    self.current_dart_number += 1
+
+    """
     if self.is_first_throw:
       self.center_dart_board()
     else: 
-      self.move_relative_to_last_position(self.dart_center_offset)
+      self.move_relative_to_last_position_in_gripper_frame(self.dart_center_offset)
     
     print "Take reference picture"  
     self.take_reference_picture()
@@ -100,15 +141,17 @@ class Robodart_control():
     
     print "Get dart to center offset"
     self.dart_center_offset = self.get_dart_center_offset()
+    """
     
-  def center_dart_board(self):
+  def center_dart_board(self, use_last = False):
     print "Center Dart Board"
     self.move_to_drop_position()
-
-    print "Sleep 2 seconds"
-    time.sleep(2) #drop time #TODO measure
-    
-    self.move_relative_to_last_position(self.get_bullseye_center_offset())
+    say("Berechne Ziel position.")
+    print "Sleep 4 seconds"
+    time.sleep(3) #drop time #TODO measure
+    if not use_last:
+      self.last_offset = self.get_bullseye_center_offset()
+    self.move_relative_to_last_position_in_gripper_frame(self.last_offset)
 
   """
   def calibrate(self):
@@ -116,16 +159,36 @@ class Robodart_control():
     self.center_dart_board()
     self.open_gripper()
   """
-  def pickup_dart(self):
-    print 'Pickup dart'
+
+  def pickup_dart(self, dart_number):
+    say("Pfeil holen")
+
+    print 'Starting Pickup dart'
+
+    self.open_gripper()
+
+    print 'Move above first dart pickup position'
+    self.move_to_position_in_robot_frame(self.dart_positions[0], 0.517)
+
+    print 'Move above desired dart pickup position'
+    self.move_to_position_in_robot_frame(self.dart_positions[dart_number], 0.517)
     
-    #TODO:
-    
+
+    print 'Move to pickup position'
+
+    self.move_relative_to_last_position_in_robot_frame([0,0],-0.067)
+
     self.close_gripper()
-     
+ 
+    print 'Move above pickup position'
+    self.move_relative_to_last_position_in_robot_frame([0,0],+0.067)
+
+    print 'Move away horizontally in x direction'
+    self.move_relative_to_last_position_in_robot_frame([0.03,0])
+
   def move_home(self):  
     print 'Move to home position'  
-    self.group.set_named_target('home rotated')
+    self.group.set_named_target('home_stable')
     self.group.go()
     
   def move_to_drop_position(self):
@@ -136,44 +199,62 @@ class Robodart_control():
     print "Open Gripper"
     goal = GripperCommandGoal()
     #positition open max 0.3
-    goal.command.position = 0.3
+    goal.command.position = 0.0
     self.client.send_goal(goal)
     
   def close_gripper(self):
     print "Close Gripper"
     goal = GripperCommandGoal()
     #position close max -0.44
-    goal.command.position = -0.19   
+    #goal.command.position = -0.19
+    goal.command.position = -0.23 
     self.client.send_goal(goal)
        
-  def move_relative_to_last_position(self, offset_vector = (0,0)):
+  def move_relative_to_last_position_in_gripper_frame(self, offset_vector = (0,0), z_offset = 0):
     
 
     """Moves to the position defined by last_position + offset_vector.
     
     Arguments:
     >>offset_vector -- the offset as tupel(x,y) (default (0,0))
+    >>z_offset -- the z axis offset (default 0)
     """
     print 'Move relative to last position: ' , self.last_position, 'offset: ', offset_vector
     
     new_position = [self.last_position[0] + offset_vector[0], self.last_position[1] + offset_vector[1]]
     
-    self.move_to_position_in_gripper_frame(new_position)
+    self.move_to_position_in_gripper_frame(new_position, self.last_z_position + z_offset)
     
     print 'New Position: ', new_position
+
+
+  def move_relative_to_last_position_in_robot_frame(self, offset_vector = (0,0), z_offset = 0):
+    """Moves to the position defined by last_position + offset_vector.
     
-  def move_to_position_in_gripper_frame(self, target_point = [0,0]):
+    Arguments:
+    >>offset_vector -- the offset as tupel(x,y) (default (0,0))
+    >>z_offset -- the z axis offset (default 0)
+    """
+    print 'Move relative to last position: ' , self.last_position, 'offset: ', offset_vector
+    
+    new_position = [self.last_position[0] + offset_vector[0], self.last_position[1] + offset_vector[1]]
+    
+    self.move_to_position_in_robot_frame(new_position, self.last_z_position + z_offset)
+    
+    print 'New Position: ', new_position
+
+  def move_to_position_in_gripper_frame(self, target_point = [0,0], z_axis = 0.4):
     self.group.set_pose_reference_frame(self.GRIPPER_FRAME)
 
-    self.move_to_position(target_point)
+    self.move_to_position(target_point, z_axis)
 
-  def move_to_position_in_robot_frame(self, target_point = [0,0]):
+  def move_to_position_in_robot_frame(self, target_point = [0,0], z_axis = 0.4):
     self.group.set_pose_reference_frame(self.REFERENCE_FRAME)
 
-    self.move_to_position(target_point)
+    self.move_to_position(target_point, z_axis)
    
     
-  def move_to_position(self, target_point = [0,0]):
+  def move_to_position(self, target_point = [0,0], z_axis = 0.4):
     """Moves to the position given by target_point in self.REFERENCE_FRAME
     
     Arguments:
@@ -185,14 +266,14 @@ class Robodart_control():
     
     #save position for relative movement
     self.last_position = list(target_point)
+    self.last_z_position = z_axis
     
     p = PoseStamped()
     p.header.frame_id = self.REFERENCE_FRAME
     p.pose.position.x = target_point[0]
     p.pose.position.y = target_point[1]
-    #p.pose.position.z = 0.
     
-    p.pose.position.z = 0.4
+    p.pose.position.z = z_axis
     
     #p.pose.orientation.w = 1
     
@@ -247,12 +328,12 @@ class Robodart_control():
     return trans
   
   def save_current_gripper_position(self):
-    """
+    '''
     sf = 'value is %s' % self.var.get()
     
     self.saved_positions[name] = self.get_current_gripper_position()
     pickle.dump(self.saved_positions, open('positions.p', 'wb'))
-    """
+    '''
     
     
   def get_gripper_position_by_name(self, name):
@@ -315,14 +396,20 @@ if __name__ == '__main__':
   mm_btn = Button(gui, command = my_robodart_control.get_current_gripper_position, text = 'Get Gripper Position', height=1, width=15)
   mm_btn.grid(row=4, column=0)
   
-  mm_btn = Button(gui, command = my_robodart_control.throw_dart, text = 'Throw Dart', height=1, width=15)
+  mm_btn = Button(gui, command = my_robodart_control.pickup_dart, text = 'pickup_dart', height=1, width=15)
   mm_btn.grid(row=5, column=0)
+
+  mm_btn = Button(gui, command = my_robodart_control.throw_dart, text = 'throw_dart', height=1, width=15)
+  mm_btn.grid(row=6, column=0)
+
+
+
   
   mm_btn = Button(gui, command = my_robodart_control.center_dart_board, text = 'Center Dart Board', height=1, width=15)
-  mm_btn.grid(row=6, column=0)
+  mm_btn.grid(row=7, column=0)
   
   mm_btn = Button(gui, command = exit, text = 'Exit', height=1, width=15)
-  mm_btn.grid(row=7, column=0)
+  mm_btn.grid(row=8, column=0)
   
   """
   # initial value
