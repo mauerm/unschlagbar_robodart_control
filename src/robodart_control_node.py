@@ -56,8 +56,6 @@ class Robodart_control():
   REFERENCE_FRAME = 'katana_base_link' #All positions are defined relative to this frame (robot frame)
   GRIPPER_FRAME = 'katana_gripper_tool_frame' #Name of the gripper frame
   
-  CAMERA_OFFSET = [0,0] #This tupel describes the constant offset between the camera and the actual dart drop position.
-  
   AIMING_CENTER_POSITION = (0.478,0) #the aiming is done relative to this position, AIMING_CENTER_POSITION is defined in REFERENCE_FRAME
   
   pre_pickup_height = 0.517 #The height in REFERENCE_FRAME above the dart
@@ -70,6 +68,8 @@ class Robodart_control():
   last_offset = [0,0]
   
   dart_center_offset = [0,0]
+  
+  camera_dart_offset = [0,0] #This tupel describes the offset between the camera and the actual dart drop position.
   
   is_first_throw = True
   
@@ -116,7 +116,8 @@ class Robodart_control():
     
     self.scene = PlanningSceneInterface()
 
-  def throw_dart(self):  
+  def throw_dart(self):
+    #Center the dartboard according to the previously calibrated dart_center offset
     self.center_dart_board()
     saved_pos = self.get_current_gripper_position()
     time.sleep(8)
@@ -172,15 +173,14 @@ class Robodart_control():
     self.set_camera_dart_offset(self.saved_value)  
 
 
-  def center_dart_board(self, use_last = False):
+  def center_dart_board(self):
     print "Center Dart Board"
     self.move_to_drop_position()
     say("Berechne Ziel position.")
     print "Sleep 4 seconds"
-    time.sleep(3) #drop time #TODO measure
-    if not use_last:
-      self.last_offset = self.get_bullseye_center_offset()
-    self.move_relative_to_last_position_in_gripper_frame(self.last_offset)
+    time.sleep(3) #wait till steady
+
+    self.move_relative_to_last_position_in_gripper_frame(self.get_bullseye_center_offset())
 
   """
   def calibrate(self):
