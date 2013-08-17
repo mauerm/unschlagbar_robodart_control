@@ -61,6 +61,8 @@ class Robodart_control():
   pre_pickup_height = 0.517 #The height in REFERENCE_FRAME above the dart
   lift_offset = 0.067 #The lift height of the dart
   move_away_after_pickup_offset = 0.03 #Distance to move away from dart horizontally after pickup
+  
+  camera_dart_offset_persistent_filename = 'camera_dart_offset.persistent'
   ##CONSTANDS END
 
   last_position = [0,0]
@@ -70,9 +72,7 @@ class Robodart_control():
   dart_center_offset = [0,0]
   
   camera_dart_offset = [0,0] #This tupel describes the offset between the camera and the actual dart drop position.
-  
-  is_first_throw = True
-  
+
   client = None
   
   group = None
@@ -92,10 +92,6 @@ class Robodart_control():
   var = None
 
   scene = None
-
-  #the following variables can be deleted?!
-  #dart_center_offset = [0,0]
-  #is_first_throw = True
 
  
   def __init__(self):
@@ -118,15 +114,24 @@ class Robodart_control():
 
   def throw_dart(self):
     #Center the dartboard according to the previously calibrated dart_center offset
+    if self.current_dart_number == 0:
+      self.load_camera_dart_offset_from_file()
+      self.vision_set_camera_dart_offset()
+
     self.center_dart_board()
+
     saved_pos = self.get_current_gripper_position()
-    time.sleep(8)
-    self.take_reference_picture()    
+    say("Erfasse Zielscheibe, bitte nicht wackeln!")
+    time.sleep(5)
+    
+    say("Zielscheibe erkannt!")
+    self.take_reference_picture() 
+    time.sleep(2)
+    
     self.pickup_dart()
-    #self.move_to_drop_position()
-    #self.center_dart_board()
-    self.center_dart_board(True)  
-    #self.move_to_position_in_robot_frame(saved_pos)
+
+    #TODO: check if this is correct, else save last position in robot frame
+    self.move_to_position_in_robot_frame([saved_pos[0], saved_pos[1]])
 
     say("Vorsicht. Abwurf in.")
     time.sleep(2)
@@ -139,39 +144,40 @@ class Robodart_control():
     say("Abwurf!")
 
     self.open_gripper()
-    #Sleep just because of Timeouts
+
+    say("Erfasse Pfeil, bitte nicht wackeln!")
     time.sleep(5)
     
-    #TODO: Wert speichern
-    self.get_dart_center_offset()
+    #Adjust camera_dart_offset by dart_center_offset
+    self.dart_center_offset = self.get_dart_center_offset()
+    say("Pfeil erkannt.")
+    
+    print "Dart-center offset", self.dart_center_offset
+    
+    say("Daneben in X Richtung " + str(self.camera_dart_offset[0]))
+    sleep(5)
+    say("Daneben in Y Richtung " + str(self.camera_dart_offset[1]))
+    sleep(5)
+    
+    print "Camera-dart offset", self.camera_dart_offset
+    
+    #TODO: check if its + or -
+    self.camera_dart_offset[0] = self.camera_dart_offset[0] - self.dart_center_offset[0]
+    self.camera_dart_offset[1] = self.camera_dart_offset[1] - self.dart_center_offset[1]
+    
+    print "Adjusted camera-dart offset", self.camera_dart_offset
+    
+    self.save_camera_dart_offset_to_file()
+    
+    
     self.move_home()
 
     self.current_dart_number += 1
 
-    """
-    if self.is_first_throw:
-      self.center_dart_board()
-    else: 
-      self.move_relative_to_last_position_in_gripper_frame(self.dart_center_offset)
-    
-    print "Take reference picture"  
-    self.take_reference_picture()
-    self.open_gripper()
-    
-    print "Sleep 2 seconds"
-    time.sleep(2) #drop time #TODO measure
-    
-    print "Get dart to center offset"
-    self.dart_center_offset = self.get_dart_center_offset()
-    """
-  
 
   def calibrate(self):
-    self.set_camera_dart_offset(0,0)
-    self.throw_dart()
-    #TODO: Mit gespeicherntem Wert füllen
-    self.set_camera_dart_offset(self.saved_value)  
-
+    #self.vision_set_camera_dart_offset
+    #self.throw_dart()
 
   def center_dart_board(self):
     print "Center Dart Board"
@@ -370,19 +376,31 @@ class Robodart_control():
     print 'Rotation:' , rot
     
     return trans
-  
+    
+
+  def save_camera_dart_offset_to_file(self):
+    
+    pickle.dump(self.camera_dart_offset, open(self.camera_dart_offset_persistent_filename, 'wb'))
+    
+  def load_camera_dart_offset_from_file(self):
+    
+    self.camera_dart_offset = pickle.load(open(self.camera_dart_offset_persistent_filename, 'rb'))
+    
+  '''
   def save_current_gripper_position(self):
-    '''
+    
     sf = 'value is %s' % self.var.get()
     
     self.saved_positions[name] = self.get_current_gripper_position()
     pickle.dump(self.saved_positions, open('positions.p', 'wb'))
-    '''
+  '''
+    
 
+  '''
   def get_gripper_position_by_name(self, name):
     self.saved_positions.update(pickle.load(open('positions.p', 'rb')))  
     return self.saved_positions[name]
-  
+  '''
 
   def take_reference_picture(self):
     resp = self.call_service('/robodart_vision/take_reference_picture', Empty)
@@ -408,8 +426,9 @@ class Robodart_control():
     resp = self.call_service('robodart_control/look_at_left_magazin', Empty)
     return resp
 
-  def set_camera_dart_offset(self, x, y):
-    self.call_service('robodart_vision/set_camera_dart_offset', SetOffset, [x, y])
+  def vision_set_camera_dart_offset(self):
+    resp = self.call_service('robodart_vision/set_camera_dart_offset', Point, self.camera_dart_offset)
+    return resp
 
   def look_at_home(self):
     print 'look_at_home'
@@ -487,7 +506,7 @@ if __name__ == '__main__':
   mm_btn = Button(gui, command = stop, text = 'Stop', height=1, width=15)
   mm_btn.grid(row=8, column=0)
   
-  mm_btn = Button(gui, command = my_robodart_control.calibrate, text = 'Calibrate', height=1, width=15)
+  mm_btn = Button(gui, command = my_robodart_control.calibrate, text = 'Calibrate Dart-Camera-Offset', height=1, width=15)
   mm_btn.grid(row=9, column=0)
 
   mm_btn = Button(gui, command = exit, text = 'Exit', height=1, width=15)
