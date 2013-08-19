@@ -3,7 +3,7 @@
 PACKAGE='robodart_control'
 
 import roslib
-roslib.load_manifest('robodart_control')
+roslib.load_manifest(PACKAGE)
 
 import rospy
 
@@ -64,6 +64,8 @@ class Robodart_control():
   
   camera_dart_offset_persistent_filename = 'camera_dart_offset.persistent'
   ##CONSTANDS END
+  
+  package_dir = None
 
   last_position = [0,0]
   last_z_position = 0
@@ -90,12 +92,17 @@ class Robodart_control():
 
  
   def __init__(self):
+      
+    self.package_dir = roslib.packages.get_pkg_dir(PACKAGE) + '/'
+    print "Package dir = ", self.package_dir
 
     #init action client
     self.client = actionlib.ActionClient('gripper_action_controller/gripper_command', GripperCommandAction)
     
     print 'Waiting for grippercommand action server'
     self.client.wait_for_server()
+    
+    
     
     #init move_group
     self.group = MoveGroupCommander('arm')
@@ -147,15 +154,8 @@ class Robodart_control():
     #Adjust camera_dart_offset by dart_center_offset
     self.dart_center_offset = self.get_dart_center_offset()
     say("Pfeil erkannt.")
-
-    time.sleep(3)
     
     print "Dart-center offset", self.dart_center_offset
-    
-    say("Daneben in X Richtung " + str(self.camera_dart_offset[0]))
-    time.sleep(5)
-    say("Daneben in Y Richtung " + str(self.camera_dart_offset[1]))
-    time.sleep(5)
     
     print "Camera-dart offset", self.camera_dart_offset
     
@@ -166,11 +166,8 @@ class Robodart_control():
     print "Adjusted camera-dart offset", self.camera_dart_offset
     
     self.save_camera_dart_offset_to_file()
-    
-    
+       
     self.move_home()
-
-    self.current_dart_number += 1
 
 
   def reset_dart_camera_offset(self):
@@ -199,8 +196,6 @@ class Robodart_control():
     '''
   def pickup_dart(self):
     say("Ich hole mir Pfeil nummer " + str(self.current_dart_number + 1))
-
-    
 
     print 'Starting Pickup dart'
 
@@ -384,11 +379,11 @@ class Robodart_control():
 
   def save_camera_dart_offset_to_file(self):
     
-    pickle.dump(self.camera_dart_offset, open(self.camera_dart_offset_persistent_filename, 'wb'))
+    pickle.dump(self.camera_dart_offset, open(self.package_dir + self.camera_dart_offset_persistent_filename, 'wb'))
     
   def load_camera_dart_offset_from_file(self):
     try:
-      self.camera_dart_offset = pickle.load(open(self.camera_dart_offset_persistent_filename, 'rb'))
+      self.camera_dart_offset = pickle.load(open(self.package_dir + self.camera_dart_offset_persistent_filename, 'rb'))
     except (IOError):
       print "Could not read persistent camera dart offset"
     
