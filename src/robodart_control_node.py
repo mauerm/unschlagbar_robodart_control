@@ -58,7 +58,7 @@ class Robodart_control():
   
   AIMING_CENTER_POSITION = (0.478,0) #the aiming is done relative to this position, AIMING_CENTER_POSITION is defined in REFERENCE_FRAME
   
-  pre_pickup_height = 0.517 #The height in REFERENCE_FRAME above the dart
+  pre_pickup_height = 0.527 #The height in REFERENCE_FRAME above the dart
   lift_offset = 0.067 #The lift height of the dart
   move_away_after_pickup_offset = 0.03 #Distance to move away from dart horizontally after pickup
   
@@ -80,11 +80,6 @@ class Robodart_control():
   tf_listener = None
   
   my_robodart_vision = None
-  
-  dart_positions = []
-  dart_positions.append((-0.336,-0.218)) #x and y positions of dart number 0
-  dart_positions.append((-0.338,-0.158)) #x and y positions of dart number 1
-  dart_positions.append((-0.34,-0.098)) #x and y positions of dart number 2
 
   current_dart_number = 0
 
@@ -120,7 +115,8 @@ class Robodart_control():
 
     self.center_dart_board()
 
-    saved_pos = self.get_current_gripper_position()
+    #saved_pos = self.get_current_gripper_position()
+    saved_pos = self.last_position
     say("Erfasse Zielscheibe, bitte nicht wackeln!")
     time.sleep(5)
     
@@ -151,13 +147,15 @@ class Robodart_control():
     #Adjust camera_dart_offset by dart_center_offset
     self.dart_center_offset = self.get_dart_center_offset()
     say("Pfeil erkannt.")
+
+    time.sleep(3)
     
     print "Dart-center offset", self.dart_center_offset
     
     say("Daneben in X Richtung " + str(self.camera_dart_offset[0]))
-    sleep(5)
+    time.sleep(5)
     say("Daneben in Y Richtung " + str(self.camera_dart_offset[1]))
-    sleep(5)
+    time.sleep(5)
     
     print "Camera-dart offset", self.camera_dart_offset
     
@@ -175,9 +173,13 @@ class Robodart_control():
     self.current_dart_number += 1
 
 
-  def calibrate(self):
-    #self.vision_set_camera_dart_offset
-    #self.throw_dart()
+  def reset_dart_camera_offset(self):
+    print "reset_dart_camera_offset"
+    self.camera_dart_offset[0] = 0
+    self.camera_dart_offset[1] = 0
+    self.vision_set_camera_dart_offset()
+    self.save_camera_dart_offset_to_file()
+    
 
   def center_dart_board(self):
     print "Center Dart Board"
@@ -188,17 +190,17 @@ class Robodart_control():
 
     self.move_relative_to_last_position_in_gripper_frame(self.get_bullseye_center_offset())
 
-  """
+
   def calibrate(self):
     print 'Calibrating'
+    '''
     self.center_dart_board()
     self.open_gripper()
-  """
-
+    '''
   def pickup_dart(self):
     say("Ich hole mir Pfeil nummer " + str(self.current_dart_number + 1))
 
-    self.look_at_right_magazin()
+    
 
     print 'Starting Pickup dart'
 
@@ -208,8 +210,10 @@ class Robodart_control():
     if self.current_dart_number < 3:
       
       self.move_to_position_in_robot_frame(self.dart_positions[0], self.pre_pickup_height)
+      self.look_at_right_magazin()
     else:
       self.move_to_position_in_robot_frame(self.dart_positions[-1], self.pre_pickup_height)
+      self.look_at_left_magazin()
 
 
     print 'Move above desired dart pickup position'
@@ -383,8 +387,10 @@ class Robodart_control():
     pickle.dump(self.camera_dart_offset, open(self.camera_dart_offset_persistent_filename, 'wb'))
     
   def load_camera_dart_offset_from_file(self):
-    
-    self.camera_dart_offset = pickle.load(open(self.camera_dart_offset_persistent_filename, 'rb'))
+    try:
+      self.camera_dart_offset = pickle.load(open(self.camera_dart_offset_persistent_filename, 'rb'))
+    except (IOError):
+      print "Could not read persistent camera dart offset"
     
   '''
   def save_current_gripper_position(self):
@@ -408,10 +414,16 @@ class Robodart_control():
 
   def get_bullseye_center_offset(self):
     resp = self.call_service('/robodart_vision/get_bullseye_center_offset', Point)
+    if resp is None:
+      print "No bullseye center offset received!, no circles detected?"
+      return [0,0]
     return [resp.x, resp.y]
 
   def get_dart_center_offset(self):
     resp = self.call_service('/robodart_vision/get_dart_center_offset', Point)
+    if resp is None:
+      print "No dart center offset received!, no arrows detected?"
+      return [0,0]
     return [resp.x, resp.y]
 
 
@@ -427,7 +439,7 @@ class Robodart_control():
     return resp
 
   def vision_set_camera_dart_offset(self):
-    resp = self.call_service('robodart_vision/set_camera_dart_offset', Point, self.camera_dart_offset)
+    resp = self.call_service('robodart_vision/set_camera_dart_offset', SetOffset, self.camera_dart_offset[0], self.camera_dart_offset[1])
     return resp
 
   def look_at_home(self):
@@ -439,11 +451,11 @@ class Robodart_control():
   def look_weird(self):
     print 'look_weird'
 
-  def call_service(self, serviceName, srv, arg1=None, arg2=None):
+  def call_service(self, serviceName, srv, arg1 = None, arg2= None):
     rospy.wait_for_service(serviceName)
     try:
       service_method = rospy.ServiceProxy(serviceName, srv)
-      if arg is None:
+      if arg2 is None:
         resp = service_method()
       else:
         resp = service_method(arg1, arg2)      
@@ -506,7 +518,7 @@ if __name__ == '__main__':
   mm_btn = Button(gui, command = stop, text = 'Stop', height=1, width=15)
   mm_btn.grid(row=8, column=0)
   
-  mm_btn = Button(gui, command = my_robodart_control.calibrate, text = 'Calibrate Dart-Camera-Offset', height=1, width=15)
+  mm_btn = Button(gui, command = my_robodart_control.reset_dart_camera_offset, text = 'Reset Dart-Camera-Offset', height=1, width=15)
   mm_btn.grid(row=9, column=0)
 
   mm_btn = Button(gui, command = exit, text = 'Exit', height=1, width=15)
