@@ -33,6 +33,9 @@ from geometry_msgs.msg import PoseStamped
 from robodart_vision.srv import Point, SetOffset
 from std_srvs.srv import Empty
 
+from pr2_plugs_msgs.msg import EmptyAction
+from pr2_plugs_msgs.msg._EmptyActionGoal import EmptyActionGoal
+
 
 
 
@@ -113,6 +116,14 @@ class Robodart_control():
     self.tf_listener = TransformListener()
     
     self.scene = PlanningSceneInterface()
+
+    rospy.info("waiting for PTU servers")
+    self.actionClientRight = actionlib.SimpleActionClient('robodart_control/look_at_right_magazin', EmptyAction)
+    self.actionClientRight.wait_for_server()
+    self.actionClientHome = actionlib.SimpleActionClient('robodart_control/look_at_home', EmptyAction)
+    self.actionClientHome.wait_for_server()
+    self.actionClientLeft = actionlib.SimpleActionClient('robodart_control/look_at_left_magazin', EmptyAction)
+    self.actionClientLeft.wait_for_server()
 
   def throw_dart(self):
     #Center the dartboard according to the previously calibrated dart_center offset
@@ -424,14 +435,17 @@ class Robodart_control():
 
   def look_at_right_magazin(self):
     print 'look_at_right_magazin'
-    resp = self.call_service('robodart_control/look_at_right_magazin', Empty)
-    return resp
+    goal = EmptyActionGoal()
+    actionClientRight.send_goal(goal)
+    #resp = self.call_service('robodart_control/look_at_right_magazin', Empty)
+    #return resp
 
   def look_at_left_magazin(self):
     print 'look_at_left_magazin'
-
-    resp = self.call_service('robodart_control/look_at_left_magazin', Empty)
-    return resp
+    goal = EmptyActionGoal()
+    actionClientLeft.send_goal(goal)
+    #resp = self.call_service('robodart_control/look_at_left_magazin', Empty)
+    #return resp
 
   def vision_set_camera_dart_offset(self):
     resp = self.call_service('robodart_vision/set_camera_dart_offset', SetOffset, self.camera_dart_offset[0], self.camera_dart_offset[1])
@@ -439,6 +453,8 @@ class Robodart_control():
 
   def look_at_home(self):
     print 'look_at_home'
+    goal = EmptyActionGoal()
+    actionClientHome.send_goal(goal)
 
   def look_busy(self):
     print 'look_busy'
