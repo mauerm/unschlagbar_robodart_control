@@ -49,9 +49,9 @@ class Robodart_control():
   dart_positions.append((-0.34,-0.098)) #x and y positions of dart number 2
 
   #TODO: teach positions
-  dart_positions.append((-0.34,-0.098)) #x and y positions of dart number 3
-  dart_positions.append((-0.34,-0.098)) #x and y positions of dart number 4
-  dart_positions.append((-0.34,-0.098)) #x and y positions of dart number 5
+  dart_positions.append((-0.354,0.1645)) #x and y positions of dart number 3
+  dart_positions.append((-0.354,0.223)) #x and y positions of dart number 4
+  dart_positions.append((-0.354,0.287)) #x and y positions of dart number 5
   
   REFERENCE_FRAME = 'katana_base_link' #All positions are defined relative to this frame (robot frame)
   GRIPPER_FRAME = 'katana_gripper_tool_frame' #Name of the gripper frame
@@ -82,8 +82,6 @@ class Robodart_control():
   tf_listener = None
   
   my_robodart_vision = None
-
-  current_dart_number = 0
 
   #tk dropdown var
   var = None
@@ -116,9 +114,11 @@ class Robodart_control():
 
   def throw_dart(self):
     #Center the dartboard according to the previously calibrated dart_center offset
-    if self.current_dart_number == 0:
+    if self.camera_dart_offset[0] == 0 and self.camera_dart_offset[1] == 0:
+      print "Loaded camera offset from file ", self.camera_dart_offset 
       self.load_camera_dart_offset_from_file()
-      self.vision_set_camera_dart_offset()
+      
+    self.vision_set_camera_dart_offset()
 
     self.center_dart_board()
 
@@ -164,7 +164,7 @@ class Robodart_control():
     self.camera_dart_offset[1] = self.camera_dart_offset[1] - self.dart_center_offset[1]
     
     print "Adjusted camera-dart offset", self.camera_dart_offset
-    
+    self.vision_set_camera_dart_offset()
     self.save_camera_dart_offset_to_file()
        
     self.move_home()
@@ -424,13 +424,14 @@ class Robodart_control():
 
   def look_at_right_magazin(self):
     print 'look_at_right_magazin'
-    resp = self.call_service('robodart_control/look_at_right_magazin', Empty)
+    #resp = self.call_service('robodart_control/look_at_right_magazin', Empty)
+    resp = []
     return resp
 
   def look_at_left_magazin(self):
     print 'look_at_left_magazin'
-
-    resp = self.call_service('robodart_control/look_at_left_magazin', Empty)
+    resp = []
+    #resp = self.call_service('robodart_control/look_at_left_magazin', Empty)
     return resp
 
   def vision_set_camera_dart_offset(self):
