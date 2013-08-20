@@ -117,7 +117,7 @@ class Robodart_control():
     
     self.scene = PlanningSceneInterface()
 
-    rospy.info("waiting for PTU servers")
+    rospy.loginfo("waiting for PTU servers")
     self.actionClientRight = actionlib.SimpleActionClient('robodart_control/look_at_right_magazin', EmptyAction)
     self.actionClientRight.wait_for_server()
     self.actionClientHome = actionlib.SimpleActionClient('robodart_control/look_at_home', EmptyAction)
@@ -436,14 +436,14 @@ class Robodart_control():
   def look_at_right_magazin(self):
     print 'look_at_right_magazin'
     goal = EmptyActionGoal()
-    actionClientRight.send_goal(goal)
+    self.actionClientRight.send_goal(goal)
     #resp = self.call_service('robodart_control/look_at_right_magazin', Empty)
     #return resp
 
   def look_at_left_magazin(self):
     print 'look_at_left_magazin'
     goal = EmptyActionGoal()
-    actionClientLeft.send_goal(goal)
+    self.actionClientLeft.send_goal(goal)
     #resp = self.call_service('robodart_control/look_at_left_magazin', Empty)
     #return resp
 
@@ -454,7 +454,7 @@ class Robodart_control():
   def look_at_home(self):
     print 'look_at_home'
     goal = EmptyActionGoal()
-    actionClientHome.send_goal(goal)
+    self.actionClientHome.send_goal(goal)
 
   def look_busy(self):
     print 'look_busy'

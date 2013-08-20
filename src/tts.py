@@ -24,7 +24,7 @@ def say(text, offline = False, redownload = False):
   
   music_stream_uri = 'http://translate.google.com/translate_tts?tl=de&q=' + tts
 
-  filePath = roslib.packages.get_pkg_dir(TTS_PACKAGE_NAME) + "/src/"
+  filePath = roslib.packages.get_pkg_dir(TTS_PACKAGE_NAME) + "/tts_mp3/"
 
   if not os.path.exists(filePath):
     print "Couldn't find tts Folder"
