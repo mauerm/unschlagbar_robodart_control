@@ -4,6 +4,8 @@
 #ignore gedit temp files
 *.*~
 
+*.mp3
+
 # ignore binaries and build files
 build/*
 bin/*
