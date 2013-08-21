@@ -15,7 +15,7 @@
   <depend package="actionlib"/>
   <depend package="control_msgs"/>
   <depend package="robodart_vision"/>
-
+  <depend package="pr2_plugs_msgs" />
 
 
 </package>

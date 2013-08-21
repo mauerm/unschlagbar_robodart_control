@@ -33,6 +33,9 @@ from geometry_msgs.msg import PoseStamped
 from robodart_vision.srv import Point, SetOffset
 from std_srvs.srv import Empty
 
+from pr2_plugs_msgs.msg import EmptyAction
+from pr2_plugs_msgs.msg._EmptyActionGoal import EmptyActionGoal
+
 
 
 
@@ -112,6 +115,16 @@ class Robodart_control():
     
     self.scene = PlanningSceneInterface()
 
+    rospy.loginfo("waiting for PTU servers")
+    self.actionClientRight = actionlib.SimpleActionClient('robodart_control/look_at_right_magazin', EmptyAction)
+    self.actionClientRight.wait_for_server()
+    self.actionClientHome = actionlib.SimpleActionClient('robodart_control/look_at_home', EmptyAction)
+    self.actionClientHome.wait_for_server()
+    self.actionClientLeft = actionlib.SimpleActionClient('robodart_control/look_at_left_magazin', EmptyAction)
+    self.actionClientLeft.wait_for_server()
+
+    print "Everything started successfully"
+
   def throw_dart(self):
     #Center the dartboard according to the previously calibrated dart_center offset
     if self.camera_dart_offset[0] == 0 and self.camera_dart_offset[1] == 0:
@@ -155,16 +168,19 @@ class Robodart_control():
     self.dart_center_offset = self.get_dart_center_offset()
     say("Pfeil erkannt.")
     
-    print "Dart-center offset", self.dart_center_offset
+    print "Detected dart-center offset: ", self.dart_center_offset
     
-    print "Camera-dart offset", self.camera_dart_offset
+    print "Old Camera-dart offset", self.camera_dart_offset
     
     #TODO: check if its + or -
     self.camera_dart_offset[0] = self.camera_dart_offset[0] - self.dart_center_offset[0]
     self.camera_dart_offset[1] = self.camera_dart_offset[1] - self.dart_center_offset[1]
     
-    print "Adjusted camera-dart offset", self.camera_dart_offset
+
     self.vision_set_camera_dart_offset()
+
+    print "New camera-dart offset", self.camera_dart_offset
+
     self.save_camera_dart_offset_to_file()
        
     self.move_home()
@@ -309,9 +325,6 @@ class Robodart_control():
     Arguments:
     >>target_point -- the offset as vector (default [0,0])
     """
-    print 'Move to position'
-
-      
     
     #save position for relative movement
     self.last_position = list(target_point)
@@ -337,8 +350,8 @@ class Robodart_control():
     #this is only needed for 5Dof Katana Robot
     self.replace_yaw_angle_with_reachable_value(p)
 
-    print "Planning frame: " ,self.group.get_planning_frame()
-    print "Pose reference frame: ",self.group.get_pose_reference_frame()
+    #print "Planning frame: " ,self.group.get_planning_frame()
+    #print "Pose reference frame: ",self.group.get_pose_reference_frame()
     
     #group.set_rpy_target([0, 0, 0],"katana_gripper_tool_frame")
     #group.set_position_target([p.pose.position.x,p.pose.position.y,p.pose.position.z], GRIPPER_FRAME)
@@ -348,8 +361,10 @@ class Robodart_control():
     self.group.set_pose_target(p, self.GRIPPER_FRAME)
     
     self.group.go()
+
+    print "move to position", p.pose.position
     
-    print "Current rpy: " , self.group.get_current_rpy(self.GRIPPER_FRAME)
+    #print "Current rpy: " , self.group.get_current_rpy(self.GRIPPER_FRAME)
 
   def replace_yaw_angle_with_reachable_value(self, pose_stamped):
     #print "Original pose" , pose_stamped
@@ -386,6 +401,8 @@ class Robodart_control():
       self.camera_dart_offset = pickle.load(open(self.package_dir + self.camera_dart_offset_persistent_filename, 'rb'))
     except (IOError):
       print "Could not read persistent camera dart offset"
+
+    print "Offset loaded from file", self.camera_dart_offset
     
   '''
   def save_current_gripper_position(self):
@@ -424,15 +441,16 @@ class Robodart_control():
 
   def look_at_right_magazin(self):
     print 'look_at_right_magazin'
-    #resp = self.call_service('robodart_control/look_at_right_magazin', Empty)
-    resp = []
-    return resp
+
+    goal = EmptyActionGoal()
+    self.actionClientRight.send_goal(goal)
 
   def look_at_left_magazin(self):
     print 'look_at_left_magazin'
-    resp = []
-    #resp = self.call_service('robodart_control/look_at_left_magazin', Empty)
-    return resp
+
+    goal = EmptyActionGoal()
+    self.actionClientLeft.send_goal(goal)
+
 
   def vision_set_camera_dart_offset(self):
     resp = self.call_service('robodart_vision/set_camera_dart_offset', SetOffset, self.camera_dart_offset[0], self.camera_dart_offset[1])
@@ -440,6 +458,8 @@ class Robodart_control():
 
   def look_at_home(self):
     print 'look_at_home'
+    goal = EmptyActionGoal()
+    self.actionClientHome.send_goal(goal)
 
   def look_busy(self):
     print 'look_busy'

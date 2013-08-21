@@ -22,3 +22,5 @@ catkin_generated/
 cmake_install.cmake
 devel/
 gtest/
+tty_mp3/*
+tts_mp3/*
