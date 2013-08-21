@@ -122,21 +122,21 @@ class Robodart_control():
     self.actionClientHome.wait_for_server()
     self.actionClientLeft = actionlib.SimpleActionClient('robodart_control/look_at_left_magazin', EmptyAction)
     self.actionClientLeft.wait_for_server()
+    
+    
+    self.load_camera_dart_offset_from_file()
+    print "Loaded camera offset from file ", self.camera_dart_offset    
+    self.vision_set_camera_dart_offset()
 
     print "Everything started successfully"
 
   def throw_dart(self):
-    #Center the dartboard according to the previously calibrated dart_center offset
-    if self.camera_dart_offset[0] == 0 and self.camera_dart_offset[1] == 0:
-      print "Loaded camera offset from file ", self.camera_dart_offset 
-      self.load_camera_dart_offset_from_file()
-      
-    self.vision_set_camera_dart_offset()
 
     self.center_dart_board()
 
-    #saved_pos = self.get_current_gripper_position()
+    #save current position
     saved_pos = self.last_position
+    
     say("Erfasse Zielscheibe, bitte nicht wackeln!")
     time.sleep(5)
     
@@ -164,22 +164,16 @@ class Robodart_control():
     say("Erfasse Pfeil, bitte nicht wackeln!")
     time.sleep(5)
     
-    #Adjust camera_dart_offset by dart_center_offset
-    self.dart_center_offset = self.get_dart_center_offset()
-    say("Pfeil erkannt.")
-    
-    print "Detected dart-center offset: ", self.dart_center_offset
     
     print "Old Camera-dart offset", self.camera_dart_offset
     
-    #TODO: check if its + or -
-    self.camera_dart_offset[0] = self.camera_dart_offset[0] - self.dart_center_offset[0]
-    self.camera_dart_offset[1] = self.camera_dart_offset[1] - self.dart_center_offset[1]
+    #Adjust camera_dart_offset by dart_center_offset
+    self.camera_dart_offset = self.get_dart_center_offset()
+    say("Pfeil erkannt.")
     
-
+    print "Detected Camera-dart offset: ", self.camera_dart_offset
+    
     self.vision_set_camera_dart_offset()
-
-    print "New camera-dart offset", self.camera_dart_offset
 
     self.save_camera_dart_offset_to_file()
        
