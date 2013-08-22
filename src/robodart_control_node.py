@@ -43,7 +43,7 @@ class Robodart_control():
   
   # import ipdb; ipdb.set_trace()
 
-  current_dart_number = 4 #The Number of the current Dart to throw (starting with 0)
+  current_dart_number = 0 #The Number of the current Dart to throw (starting with 0)
 
   ##CONSTANTS
   dart_positions = []
@@ -97,6 +97,8 @@ class Robodart_control():
   var = None
 
   scene = None
+  
+  log_file = None
 
  
   def __init__(self):
@@ -132,6 +134,8 @@ class Robodart_control():
 
     self.load_camera_dart_offset_from_file()
     self.vision_set_camera_dart_offset()
+    
+    self.log_file = open(roslib.packages.get_pkg_dir(PACKAGE) + '/log_file.log', 'a+')
 
     print "Everything started successfully"
 
@@ -183,18 +187,20 @@ class Robodart_control():
     
     current_offset = self.get_dart_center_offset()
     
-    self.log_file.write(';Old Camera_dart_offset:;' + self.camera_dart_offset[0] + ';' + self.camera_dart_offset[1] + ';Dart_No:;' + str(self.current_dart_number-1))
+    self.log_file.write(';Old Camera_dart_offset:;' + str(self.camera_dart_offset[0]) + ';' + str(self.camera_dart_offset[1]) + ';Dart_No:;' + str(self.current_dart_number-1))
     
-    print "Control: Current Camera Dart Offset: ",self.current_offset
+    print "Control: Current Camera Dart Offset: ",current_offset
     
-    self.camera_dart_offset[0] += current_offset
-    self.camera_dart_offset[1] += current_offset
+    self.camera_dart_offset[0] += current_offset[0]
+    self.camera_dart_offset[1] += current_offset[1]
     
     
     print "Control: Adjusted Camera Dart Offset: ",self.camera_dart_offset
     
+    import datetime
+    timestamp = str(datetime.datetime.now())
     
-    self.log_file.write(';Current Offset: ;' + current_offset[0] + ';' + current_offset[1] + '\n')
+    self.log_file.write(';Current Offset: ;' + str(current_offset[0]) + ';' + str(current_offset[1]) + ';timestamp;' + timestamp + '\n')
     
     say("Pfeil erkannt.")
     
@@ -501,8 +507,20 @@ class Robodart_control():
 
 
   def vision_set_camera_dart_offset(self):
-    resp = self.call_service('/robodart_vision/set_camera_dart_offset', SetOffset, self.camera_dart_offset[0], self.camera_dart_offset[1])
-    return resp
+    
+    serviceName = '/robodart_vision/set_camera_dart_offset'
+    
+    rospy.wait_for_service(serviceName)
+    try:
+      service_method = rospy.ServiceProxy(serviceName, SetOffset)
+      
+      print 'sent camera dart offset', self.camera_dart_offset[0], self.camera_dart_offset[1]
+
+      resp = service_method(self.camera_dart_offset[0], self.camera_dart_offset[1])  
+      return resp
+    except rospy.ServiceException, e:
+      print "Service call failed: %s"%e
+      return None
 
   def look_at_home(self):
     print 'look_at_home'
@@ -515,14 +533,11 @@ class Robodart_control():
   def look_weird(self):
     print 'look_weird'
 
-  def call_service(self, serviceName, srv, arg1 = None, arg2= None):
+  def call_service(self, serviceName, srv):
     rospy.wait_for_service(serviceName)
     try:
       service_method = rospy.ServiceProxy(serviceName, srv)
-      if arg2 is None:
-        resp = service_method()
-      else:
-        resp = service_method(arg1, arg2)      
+      resp = service_method()  
       return resp
     except rospy.ServiceException, e:
       print "Service call failed: %s"%e
