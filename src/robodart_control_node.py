@@ -60,7 +60,8 @@ class Robodart_control():
   #dart_positions.append((-0.354,0.287)) #x and y positions of dart number 5
   
   dart_positions.append((-0.344,0.162)) #x and y positions of dart number 3
-  dart_positions.append((-0.345,0.222)) #x and y positions of dart number 4
+  #dart_positions.append((-0.345,0.222)) #x and y positions of dart number 4
+  dart_positions.append((-0.344,0.221)) #x and y positions of dart number 4
   dart_positions.append((-0.344,0.279)) #x and y positions of dart number 5
   
   REFERENCE_FRAME = 'katana_base_link' #All positions are defined relative to this frame (robot frame)
@@ -135,7 +136,7 @@ class Robodart_control():
     self.load_camera_dart_offset_from_file()
     self.vision_set_camera_dart_offset()
     
-    self.log_file = open(roslib.packages.get_pkg_dir(PACKAGE) + '/log_file.log', 'a+')
+    
 
     print "Everything started successfully"
 
@@ -187,21 +188,22 @@ class Robodart_control():
     
     current_offset = self.get_dart_center_offset()
     
-    self.log_file.write(';Old Camera_dart_offset:;' + str(self.camera_dart_offset[0]) + ';' + str(self.camera_dart_offset[1]) + ';Dart_No:;' + str(self.current_dart_number-1))
+    with open(roslib.packages.get_pkg_dir(PACKAGE) + '/log_file.log', 'a') as log_file:
+      log_file.write(';Old Camera_dart_offset:;' + str(self.camera_dart_offset[0]) + ';' + str(self.camera_dart_offset[1]) + ';Dart_No:;' + str(self.current_dart_number-1))
     
-    print "Control: Current Camera Dart Offset: ",current_offset
-    
-    self.camera_dart_offset[0] += current_offset[0]
-    self.camera_dart_offset[1] += current_offset[1]
-    
-    
-    print "Control: Adjusted Camera Dart Offset: ",self.camera_dart_offset
-    
-    import datetime
-    timestamp = str(datetime.datetime.now())
-    
-    self.log_file.write(';Current Offset: ;' + str(current_offset[0]) + ';' + str(current_offset[1]) + ';timestamp;' + timestamp + '\n')
-    
+      print "Control: Current Camera Dart Offset: ",current_offset
+      
+      self.camera_dart_offset[0] += current_offset[0]
+      self.camera_dart_offset[1] += current_offset[1]
+      
+      
+      print "Control: Adjusted Camera Dart Offset: ",self.camera_dart_offset
+      
+      import datetime
+      timestamp = str(datetime.datetime.now())
+      
+      log_file.write(';Current Offset: ;' + str(current_offset[0]) + ';' + str(current_offset[1]) + ';timestamp;' + timestamp + '\n')
+      
     say("Pfeil erkannt.")
     
 

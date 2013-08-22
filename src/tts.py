@@ -10,10 +10,22 @@ import roslib.packages
 
 TTS_PACKAGE_NAME = 'robodart_control'
 
+pl = None
+
+
 def download(fileName, url):
   os.system('wget -q -U Mozilla -O "'+fileName+'" "'+url+'"')
 
 def say(text, offline = False, redownload = False):
+  global pl
+  
+  if pl is not None:
+    ret = pl.set_state(gst.STATE_READY)
+    print "set state ready", ret
+  
+  #pl.set_state(gst.STATE_READY)
+  
+    #print "getState:", gst.Element.get_state()
 
   print text
   fileName = hashlib.sha512(text).hexdigest() + ".mp3"
@@ -30,19 +42,20 @@ def say(text, offline = False, redownload = False):
     print "Couldn't find tts Folder"
   
   if not offline:
+    
     if redownload or not os.path.exists(filePath + fileName):
       download(filePath + fileName, music_stream_uri)
     
     pl = gst.element_factory_make("playbin", "player")
     pl.set_property('uri','file://'+os.path.abspath(filePath + fileName))
     ret = pl.set_state(gst.STATE_PLAYING)
-    print ret
+    print "set state:", ret
   else:
     if os.path.exists(filePath + fileName):
       pl = gst.element_factory_make("playbin", "player")
       pl.set_property('uri','file://'+os.path.abspath(filePath + fileName))
       ret = pl.set_state(gst.STATE_PLAYING)
-      print ret
+      print "set state:", ret
     else:
       print "Couldn't find a preloaded File but running in Offlinemode"
 

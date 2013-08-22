@@ -3,6 +3,6 @@
   <include file="$(find kurtana_bringup)/launch/kurtana.launch" />
   <include file="$(find ueye_cam)/launch/rgb8.launch" />
   <include file="$(find p2os_launch)/launch/p2os_driver.launch" />
-  <node name="robodart_vision" pkg="robodart_vision" type="robodart_vision_node.py" />
+  #<node name="robodart_vision" pkg="robodart_vision" type="robodart_vision_node.py" />
 
 </launch>
