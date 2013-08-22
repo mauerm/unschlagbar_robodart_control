@@ -43,18 +43,25 @@ class Robodart_control():
   
   # import ipdb; ipdb.set_trace()
 
-  current_dart_number = 0 #The Number of the current Dart to throw (starting with 0)
+  current_dart_number = 4 #The Number of the current Dart to throw (starting with 0)
 
   ##CONSTANTS
   dart_positions = []
-  dart_positions.append((-0.336,-0.218)) #x and y positions of dart number 0
-  dart_positions.append((-0.338,-0.158)) #x and y positions of dart number 1
-  dart_positions.append((-0.34,-0.098)) #x and y positions of dart number 2
+  #dart_positions.append((-0.336,-0.218)) #x and y positions of dart number 0
+  #dart_positions.append((-0.338,-0.158)) #x and y positions of dart number 1
+  #dart_positions.append((-0.34,-0.098)) #x and y positions of dart number 2
+  
+  dart_positions.append((-0.336,-0.228)) #x and y positions of dart number 0
+  dart_positions.append((-0.338,-0.168)) #x and y positions of dart number 1
+  dart_positions.append((-0.34,-0.108)) #x and y positions of dart number 2
 
-  #TODO: teach positions
-  dart_positions.append((-0.354,0.1645)) #x and y positions of dart number 3
-  dart_positions.append((-0.354,0.223)) #x and y positions of dart number 4
-  dart_positions.append((-0.354,0.287)) #x and y positions of dart number 5
+  #dart_positions.append((-0.354,0.1645)) #x and y positions of dart number 3
+  #dart_positions.append((-0.354,0.223)) #x and y positions of dart number 4
+  #dart_positions.append((-0.354,0.287)) #x and y positions of dart number 5
+  
+  dart_positions.append((-0.344,0.162)) #x and y positions of dart number 3
+  dart_positions.append((-0.345,0.222)) #x and y positions of dart number 4
+  dart_positions.append((-0.344,0.279)) #x and y positions of dart number 5
   
   REFERENCE_FRAME = 'katana_base_link' #All positions are defined relative to this frame (robot frame)
   GRIPPER_FRAME = 'katana_gripper_tool_frame' #Name of the gripper frame
@@ -123,6 +130,9 @@ class Robodart_control():
     self.actionClientLeft = actionlib.SimpleActionClient('robodart_control/look_at_left_magazin', EmptyAction)
     self.actionClientLeft.wait_for_server()
 
+    self.load_camera_dart_offset_from_file()
+    self.vision_set_camera_dart_offset()
+
     print "Everything started successfully"
 
   def throw_dart(self):
@@ -148,6 +158,8 @@ class Robodart_control():
 
     #TODO: check if this is correct, else save last position in robot frame
     self.move_to_position_in_robot_frame([saved_pos[0], saved_pos[1]])
+    
+    
 
     say("Vorsicht. Abwurf in.")
     time.sleep(2)
@@ -164,25 +176,56 @@ class Robodart_control():
     say("Erfasse Pfeil, bitte nicht wackeln!")
     time.sleep(5)
     
-    #Adjust camera_dart_offset by dart_center_offset
-    self.dart_center_offset = self.get_dart_center_offset()
+    
+    print "Old Camera Dart Offset", self.camera_dart_offset
+    
+    
+    
+    current_offset = self.get_dart_center_offset()
+    
+    self.log_file.write(';Old Camera_dart_offset:;' + self.camera_dart_offset[0] + ';' + self.camera_dart_offset[1] + ';Dart_No:;' + str(self.current_dart_number-1))
+    
+    print "Control: Current Camera Dart Offset: ",self.current_offset
+    
+    self.camera_dart_offset[0] += current_offset
+    self.camera_dart_offset[1] += current_offset
+    
+    
+    print "Control: Adjusted Camera Dart Offset: ",self.camera_dart_offset
+    
+    
+    self.log_file.write(';Current Offset: ;' + current_offset[0] + ';' + current_offset[1] + '\n')
+    
     say("Pfeil erkannt.")
-    
-    print "Detected dart-center offset: ", self.dart_center_offset
-    
-    print "Old Camera-dart offset", self.camera_dart_offset
-    
-    #TODO: check if its + or -
-    self.camera_dart_offset[0] = self.camera_dart_offset[0] - self.dart_center_offset[0]
-    self.camera_dart_offset[1] = self.camera_dart_offset[1] - self.dart_center_offset[1]
     
 
     self.vision_set_camera_dart_offset()
 
-    print "New camera-dart offset", self.camera_dart_offset
-
     self.save_camera_dart_offset_to_file()
        
+       
+    self.move_home()
+
+  def throw_dart_2(self):
+   
+    
+    self.pickup_dart()
+
+    #TODO: check if this is correct, else save last position in robot frame
+    self.move_to_drop_position()
+
+    say("Vorsicht. Abwurf in.")
+    time.sleep(2)
+    say("Drei")
+    time.sleep(1)
+    say("zwei")
+    time.sleep(1)
+    say("eins")
+    time.sleep(1)
+    say("Abwurf!")
+
+    self.open_gripper()
+
     self.move_home()
 
 
@@ -220,10 +263,10 @@ class Robodart_control():
     print 'Move above first dart pickup position of the right or left magazin depending on the number'
     if self.current_dart_number < 3:
       
-      self.move_to_position_in_robot_frame(self.dart_positions[0], self.pre_pickup_height)
+      #self.move_to_position_in_robot_frame(self.dart_positions[0], self.pre_pickup_height)
       self.look_at_right_magazin()
     else:
-      self.move_to_position_in_robot_frame(self.dart_positions[-1], self.pre_pickup_height)
+      #self.move_to_position_in_robot_frame(self.dart_positions[-1], self.pre_pickup_height)
       self.look_at_left_magazin()
 
 
@@ -246,9 +289,11 @@ class Robodart_control():
  
     print 'Move above pickup position'
     self.move_relative_to_last_position_in_robot_frame([0,0],+self.lift_offset)
+    
+    self.look_at_home()
 
-    print 'Move away horizontally in x direction'
-    self.move_relative_to_last_position_in_robot_frame([self.move_away_after_pickup_offset,0])
+    #print 'Move away horizontally in x direction'
+    #self.move_relative_to_last_position_in_robot_frame([self.move_away_after_pickup_offset,0])
 
 
   def move_home(self):  
@@ -360,7 +405,10 @@ class Robodart_control():
     
     self.group.set_pose_target(p, self.GRIPPER_FRAME)
     
-    self.group.go()
+    retVal = False
+    while retVal is False:
+        retVal = self.group.go()
+    
 
     print "move to position", p.pose.position
     
@@ -453,7 +501,7 @@ class Robodart_control():
 
 
   def vision_set_camera_dart_offset(self):
-    resp = self.call_service('robodart_vision/set_camera_dart_offset', SetOffset, self.camera_dart_offset[0], self.camera_dart_offset[1])
+    resp = self.call_service('/robodart_vision/set_camera_dart_offset', SetOffset, self.camera_dart_offset[0], self.camera_dart_offset[1])
     return resp
 
   def look_at_home(self):
