@@ -1,0 +1,6 @@
+<launch>
+
+  <include file="$(find kurtana_moveit_config)/launch/bringup_moveit_planning_execution.launch" />
+  <node name="robodart_control" pkg="robodart_control" type="robodart_control_node.py" />
+
+</launch>
