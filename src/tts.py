@@ -35,13 +35,14 @@ def say(text, offline = False, redownload = False):
     
     pl = gst.element_factory_make("playbin", "player")
     pl.set_property('uri','file://'+os.path.abspath(filePath + fileName))
-    pl.set_state(gst.STATE_PLAYING)
-
+    ret = pl.set_state(gst.STATE_PLAYING)
+    print ret
   else:
     if os.path.exists(filePath + fileName):
       pl = gst.element_factory_make("playbin", "player")
       pl.set_property('uri','file://'+os.path.abspath(filePath + fileName))
-      pl.set_state(gst.STATE_PLAYING)
+      ret = pl.set_state(gst.STATE_PLAYING)
+      print ret
     else:
       print "Couldn't find a preloaded File but running in Offlinemode"
 
