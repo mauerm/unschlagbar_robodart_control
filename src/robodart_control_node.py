@@ -137,12 +137,13 @@ class Robodart_control():
     self.vision_set_camera_dart_offset()
     
     
-
+    self.move_home()
+    say("Hallo ich bin Kate!")
     print "Everything started successfully"
 
   def throw_dart(self, adjust_offset = True):
     #Center the dartboard according to the previously calibrated dart_center offset
-
+    
     self.center_dart_board()
 
     #saved_pos = self.get_current_gripper_position()
@@ -208,7 +209,7 @@ class Robodart_control():
        
     self.move_home()
 
-  def throw_dart_without_adjusting_offset():
+  def throw_dart_without_adjusting_offset(self):
     self.throw_dart(False)
 
   def throw_dart_from_drop_position(self):
@@ -249,7 +250,7 @@ class Robodart_control():
     print "Sleep 4 seconds"
     time.sleep(3) #wait till steady
 
-    self.move_relative_to_last_position_in_gripper_frame(self.get_bullseye_center_offset())
+    self.move_relative_to_last_position_in_robot_frame(self.get_bullseye_center_offset())
 
 
   def calibrate(self):
