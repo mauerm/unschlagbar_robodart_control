@@ -140,13 +140,8 @@ class Robodart_control():
 
     print "Everything started successfully"
 
-  def throw_dart(self):
+  def throw_dart(self, adjust_offset = True):
     #Center the dartboard according to the previously calibrated dart_center offset
-    if self.camera_dart_offset[0] == 0 and self.camera_dart_offset[1] == 0:
-      print "Loaded camera offset from file ", self.camera_dart_offset 
-      self.load_camera_dart_offset_from_file()
-      
-    self.vision_set_camera_dart_offset()
 
     self.center_dart_board()
 
@@ -163,8 +158,6 @@ class Robodart_control():
 
     #TODO: check if this is correct, else save last position in robot frame
     self.move_to_position_in_robot_frame([saved_pos[0], saved_pos[1]])
-    
-    
 
     say("Vorsicht. Abwurf in.")
     time.sleep(2)
@@ -178,14 +171,12 @@ class Robodart_control():
 
     self.open_gripper()
 
+    time.sleep(1)
     say("Erfasse Pfeil, bitte nicht wackeln!")
     time.sleep(5)
-    
-    
+
     print "Old Camera Dart Offset", self.camera_dart_offset
-    
-    
-    
+
     current_offset = self.get_dart_center_offset()
     
     with open(roslib.packages.get_pkg_dir(PACKAGE) + '/log_file.log', 'a') as log_file:
@@ -193,8 +184,11 @@ class Robodart_control():
     
       print "Control: Current Camera Dart Offset: ",current_offset
       
-      self.camera_dart_offset[0] += current_offset[0]
-      self.camera_dart_offset[1] += current_offset[1]
+      if adjust_offset:
+        self.camera_dart_offset[0] += current_offset[0]
+        self.camera_dart_offset[1] += current_offset[1]
+      else:
+        print 'Warning Offset was not adjusted!!!!!'
       
       
       print "Control: Adjusted Camera Dart Offset: ",self.camera_dart_offset
@@ -214,7 +208,10 @@ class Robodart_control():
        
     self.move_home()
 
-  def throw_dart_2(self):
+  def throw_dart_without_adjusting_offset():
+    self.throw_dart(False)
+
+  def throw_dart_from_drop_position(self):
    
     
     self.pickup_dart()
@@ -544,8 +541,40 @@ class Robodart_control():
     except rospy.ServiceException, e:
       print "Service call failed: %s"%e
       return None
-  
     
+  def throw_dart_callack(self, req):   
+    self.throw_dart()
+    return []
+  
+  def throw_dart_without_adjusting_offset_callback(self, req):
+    self.throw_dart_without_adjusting_offset()
+    return []
+  
+  def throw_dart_from_drop_position_callback(self, req):
+    self.throw_dart_from_drop_position()
+    return []
+  
+  def open_gripper_callback(self, req):
+    self.open_gripper()
+    return []
+  
+  def close_gripper_callback(self, req):
+    self.close_gripper()
+    return []
+  
+  def move_to_drop_position_callback(self, req):
+    self.move_to_drop_position()
+    return []
+  
+  def move_home_callback(self, req):
+    self.move_home()
+    return []
+  
+  def reset_dart_camera_offset_callback(self, req):
+    self.reset_dart_camera_offset()
+    return []
+  
+  
 def exit():
 
   sys.exit("Successfully shut down")
@@ -564,45 +593,18 @@ if __name__ == '__main__':
   try:
     my_robodart_control = Robodart_control()
     
+    rospy.Service('robodart_control/throw_dart', Empty, my_robodart_control.throw_dart_callack)
+    rospy.Service('robodart_control/throw_dart_without_adjusting_offset', Empty, my_robodart_control.throw_dart_without_adjusting_offset_callback)
+    rospy.Service('robodart_control/throw_dart_from_drop_position', Empty, my_robodart_control.throw_dart_from_drop_position_callback)
+    rospy.Service('robodart_control/open_gripper', Empty, my_robodart_control.open_gripper_callback)
+    rospy.Service('robodart_control/close_gripper', Empty, my_robodart_control.close_gripper_callback)
+    rospy.Service('robodart_control/move_to_drop_position', Empty, my_robodart_control.move_to_drop_position_callback)
+    rospy.Service('robodart_control/move_home', Empty, my_robodart_control.move_home_callback)
+    rospy.Service('robodart_control/reset_dart_camera_offset', Empty, my_robodart_control.reset_dart_camera_offset_callback)
+    
     
   except rospy.ROSInterruptException: pass
-
-  gui = Tk()
   
-  mm_btn = Button(gui, command = my_robodart_control.open_gripper, text = 'Open Gripper', height=1, width=15)
-  mm_btn.grid(row=0, column=0)
+  print "All Services ready"
   
-  mm_btn = Button(gui, command = my_robodart_control.close_gripper, text = 'Close Gripper', height=1, width=15)
-  mm_btn.grid(row=1, column=0)
-  
-  mm_btn = Button(gui, command = my_robodart_control.move_to_drop_position, text = 'Drop Position', height=1, width=15)
-  mm_btn.grid(row=2, column=0)
-  
-  mm_btn = Button(gui, command = my_robodart_control.move_home, text = 'Home', height=1, width=15)
-  mm_btn.grid(row=3, column=0)
-  
-  mm_btn = Button(gui, command = my_robodart_control.get_current_gripper_position, text = 'Get Gripper Position', height=1, width=15)
-  mm_btn.grid(row=4, column=0)
-  
-  mm_btn = Button(gui, command = my_robodart_control.pickup_dart, text = 'pickup_dart', height=1, width=15)
-  mm_btn.grid(row=5, column=0)
-
-  mm_btn = Button(gui, command = my_robodart_control.throw_dart, text = 'throw_dart', height=1, width=15)
-  mm_btn.grid(row=6, column=0)
-
-
-
-  
-  mm_btn = Button(gui, command = my_robodart_control.center_dart_board, text = 'Center Dart Board', height=1, width=15)
-  mm_btn.grid(row=7, column=0)
-
-  mm_btn = Button(gui, command = stop, text = 'Stop', height=1, width=15)
-  mm_btn.grid(row=8, column=0)
-  
-  mm_btn = Button(gui, command = my_robodart_control.reset_dart_camera_offset, text = 'Reset Dart-Camera-Offset', height=1, width=15)
-  mm_btn.grid(row=9, column=0)
-
-  mm_btn = Button(gui, command = exit, text = 'Exit', height=1, width=15)
-  mm_btn.grid(row=10, column=0)
-
-  gui.mainloop()
+  rospy.spin()
