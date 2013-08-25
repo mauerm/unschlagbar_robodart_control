@@ -26,7 +26,7 @@
     <param name="image_top" type="int" value="-1" /> <!-- -1: center -->
     <param name="image_left" type="int" value="-1" /> <!-- -1: center -->
 
-    <param name="subsampling" type="int" value="1" /> <!-- supported by only some UEye cameras -->
+    <param name="subsampling" type="int" value="2" /> <!-- supported by only some UEye cameras -->
     <param name="binning" type="int" value="1" /> <!-- supported by only some UEye cameras -->
     <param name="sensor_scaling" type="double" value="1.0" /> <!-- supported by only some UEye cameras -->
 
