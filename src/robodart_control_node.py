@@ -606,12 +606,13 @@ class Robodart_control():
     return []
   
   def say_sentence_1(self, req):
-    say("Pfff. Ich bitte Dich! Ich bin ein Roboter, ich mache keine Fehler. Ich werde hier locker gewinnen!")
+    say("Ich bitte Dich! Ich bin ein Roboter, ich mache keine Fehler. Ich werde hier locker gewinnen!")
     return []
   
   def say_sentence_2(self, req):
     self.look_sentence()
-    say("Ach Du Scheisse. Echt jetzt? Was mach ich denn dann hier?")
+    time.sleep(1)
+    say("Ach Du Scheisse.  Echt jetzt?  Was mach ich denn dann hier?")
     return []
   
   def start_looking_around(self, req):
