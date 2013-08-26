@@ -602,6 +602,10 @@ if __name__ == '__main__':
     rospy.Service('robodart_control/move_to_drop_position', Empty, my_robodart_control.move_to_drop_position_callback)
     rospy.Service('robodart_control/move_home', Empty, my_robodart_control.move_home_callback)
     rospy.Service('robodart_control/reset_dart_camera_offset', Empty, my_robodart_control.reset_dart_camera_offset_callback)
+    rospy.Service('robodart_control/say_something', Empty, my_robodart_control.say_something)
+    rospy.Service('robodart_control/start_looking_around', Empty, my_robodart_control.start_looking_around)
+    rospy.Service('robodart_control/stop_looking_around', Empty, my_robodart_control.stop_looking_around)
+    rospy.Service('robodart_control/reset_to_arrow_1', Empty, my_robodart_control.reset_to_arrow_1)
     
     
   except rospy.ROSInterruptException: pass

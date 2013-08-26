@@ -6,6 +6,7 @@ import roslib
 roslib.load_manifest(PACKAGE)
 
 from std_srvs.srv import Empty
+from robodart_vision.srv import Point
 
 import rospy
 
@@ -47,8 +48,28 @@ def reset_dart_camera_offset():
   resp = call_service('/robodart_control/reset_dart_camera_offset', Empty)
   return resp
 
+def say_something():
+  resp = call_service('/robodart_control/say_something', Empty)
+  return resp
+  
+def start_looking_around():
+  resp = call_service('/robodart_control/start_looking_around', Empty)
+  return resp
 
+def stop_looking_around():
+  resp = call_service('/robodart_control/stop_looking_around', Empty)
+  return resp
 
+def get_bullseye_center_offset():
+  resp = self.call_service('/robodart_vision/get_bullseye_center_offset', Point)
+  if resp is None:
+    print "No bullseye center offset received!, no circles detected?"
+    return [0,0]
+  return [resp.x, resp.y]
+
+def reset_to_arrow_1():
+  resp = call_service('/robodart_control/reset_to_arrow_1', Empty)
+  return resp
 
 def call_service(serviceName, srv):
   rospy.wait_for_service(serviceName)
@@ -108,8 +129,23 @@ if __name__ == '__main__':
   
   mm_btn = Button(gui, command = reset_dart_camera_offset, text = 'Reset Dart-Camera-Offset', height=1, width=width)
   mm_btn.grid(row=9, column=0)
+  
+  mm_btn = Button(gui, command = say_something, text = 'Say something', height=1, width=width)
+  mm_btn.grid(row=10, column=0)
+  
+  mm_btn = Button(gui, command = start_looking_around, text = 'Start looking around', height=1, width=width)
+  mm_btn.grid(row=11, column=0)
+  
+  mm_btn = Button(gui, command = stop_looking_around, text = 'Stop looking around', height=1, width=width)
+  mm_btn.grid(row=12, column=0)
+  
+  mm_btn = Button(gui, command = get_bullseye_center_offset, text = 'get bullseye center offset', height=1, width=width)
+  mm_btn.grid(row=13, column=0)
+  
+  mm_btn = Button(gui, command = reset_to_arrow_1, text = 'Reset to arrow 1', height=1, width=width)
+  mm_btn.grid(row=14, column=0)
 
   mm_btn = Button(gui, command = exit, text = 'Exit', height=1, width=width)
-  mm_btn.grid(row=10, column=0)
+  mm_btn.grid(row=15, column=0)
 
   gui.mainloop()
