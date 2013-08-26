@@ -20,8 +20,8 @@ def throw_dart():
   resp = call_service('/robodart_control/throw_dart', Empty)
   return resp
 
-def throw_dart_without_adjusting_offset():
-  resp = call_service('/robodart_control/throw_dart_without_adjusting_offset', Empty)
+def throw_dart_with_old_offset_callback():
+  resp = call_service('/robodart_control/throw_dart_with_old_offset_callback', Empty)
   return resp
 
 def throw_dart_from_drop_position():
@@ -121,7 +121,7 @@ if __name__ == '__main__':
   mm_btn = Button(gui, command = throw_dart, text = 'throw_dart', height=20, width=width)
   mm_btn.grid(row=6, column=0)
   
-  mm_btn = Button(gui, command = throw_dart_without_adjusting_offset, text = 'throw_dart_without_adjusting_offset', height=1, width=width)
+  mm_btn = Button(gui, command = throw_dart_with_old_offset_callback, text = 'throw_dart_with_old_offset_callback', height=1, width=width)
   mm_btn.grid(row=7, column=0)
   
   mm_btn = Button(gui, command = throw_dart_from_drop_position, text = 'throw_dart_from_drop_position', height=1, width=width)
