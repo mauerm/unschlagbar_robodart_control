@@ -61,7 +61,7 @@ def stop_looking_around():
   return resp
 
 def get_bullseye_center_offset():
-  resp = self.call_service('/robodart_vision/get_bullseye_center_offset', Point)
+  resp = call_service('/robodart_vision/get_bullseye_center_offset', Point)
   if resp is None:
     print "No bullseye center offset received!, no circles detected?"
     return resp

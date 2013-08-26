@@ -136,6 +136,8 @@ class Robodart_control():
     self.actionClientLeft.wait_for_server()
     self.actionClientAround = actionlib.SimpleActionClient('robodart_control/look_around', EmptyAction)
     self.actionClientAround.wait_for_server()
+    self.actionClientDart = actionlib.SimpleActionClient('robodart_control/look_at_dartboard', EmptyAction)
+    self.actionClientDart.wait_for_server()
 
     self.load_camera_dart_offset_from_file()
     self.vision_set_camera_dart_offset()
@@ -148,11 +150,13 @@ class Robodart_control():
   def throw_dart(self, adjust_offset = True):
     #Center the dartboard according to the previously calibrated dart_center offset
     
+    self.look_at_dartboard()
+    
     self.center_dart_board()
 
     #saved_pos = self.get_current_gripper_position()
     saved_pos = self.last_position
-    say("Erfasse Zielscheibe, bitte nicht wackeln!")
+    say("Erfasse Zielscheibe!")
     time.sleep(5)
     
     say("Zielscheibe erkannt!")
@@ -161,6 +165,7 @@ class Robodart_control():
     
     self.pickup_dart()
 
+    self.look_at_dartboard()
     #TODO: check if this is correct, else save last position in robot frame
     self.move_to_position_in_robot_frame([saved_pos[0], saved_pos[1]])
 
@@ -177,7 +182,7 @@ class Robodart_control():
     self.open_gripper()
 
     time.sleep(1)
-    say("Erfasse Pfeil, bitte nicht wackeln!")
+    say("Erfasse Pfeil!")
     time.sleep(5)
 
     print "Old Camera Dart Offset", self.camera_dart_offset
@@ -210,6 +215,7 @@ class Robodart_control():
 
     self.save_camera_dart_offset_to_file()
        
+    self.look_at_home()
        
     self.move_home()
 
@@ -530,6 +536,12 @@ class Robodart_control():
     print 'look_at_home'
     goal = EmptyActionGoal()
     self.actionClientHome.send_goal(goal)
+    
+  
+  def look_at_dartboard(self):
+    print 'look_at_dartboard'
+    goal = EmptyActionGoal()
+    self.actionClientDart.send_goal(goal)
 
   def look_busy(self):
     print 'look_busy'
