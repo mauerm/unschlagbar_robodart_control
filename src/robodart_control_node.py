@@ -138,6 +138,10 @@ class Robodart_control():
     self.actionClientAround.wait_for_server()
     self.actionClientDart = actionlib.SimpleActionClient('robodart_control/look_at_dartboard', EmptyAction)
     self.actionClientDart.wait_for_server()
+    self.actionClientSad = actionlib.SimpleActionClient('robodart_control/look_sad', EmptyAction)
+    self.actionClientSad.wait_for_server()
+    self.actionClientSentence = actionlib.SimpleActionClient('robodart_control/look_sentence', EmptyAction)
+    self.actionClientSentence.wait_for_server()
 
     self.load_camera_dart_offset_from_file()
     self.vision_set_camera_dart_offset()
@@ -548,6 +552,16 @@ class Robodart_control():
 
   def look_weird(self):
     print 'look_weird'
+  
+  def look_sad(self):
+    rospy.loginfo('look_at_home')
+    goal = EmptyActionGoal()
+    self.actionClientSad.send_goal(goal)
+
+  def look_sentence(self):
+    rospy.loginfo('look_at_home')
+    goal = EmptyActionGoal()
+    self.actionClientSentence.send_goal(goal)
 
   def call_service(self, serviceName, srv):
     rospy.wait_for_service(serviceName)
@@ -591,8 +605,13 @@ class Robodart_control():
     self.reset_dart_camera_offset()
     return []
   
-  def say_something(self, req):
-    say("Ich sage etwas.")
+  def say_sentence_1(self, req):
+    say("Pfff. Ich bitte Dich! Ich bin ein Roboter, ich mache keine Fehler. Ich werde hier locker gewinnen!")
+    return []
+  
+  def say_sentence_2(self, req):
+    self.look_sentence()
+    say("Ach Du Scheisse. Echt jetzt? Was mach ich denn dann hier?")
     return []
   
   def start_looking_around(self, req):
@@ -641,7 +660,8 @@ if __name__ == '__main__':
     rospy.Service('robodart_control/move_to_drop_position', Empty, my_robodart_control.move_to_drop_position_callback)
     rospy.Service('robodart_control/move_home', Empty, my_robodart_control.move_home_callback)
     rospy.Service('robodart_control/reset_dart_camera_offset', Empty, my_robodart_control.reset_dart_camera_offset_callback)
-    rospy.Service('robodart_control/say_something', Empty, my_robodart_control.say_something)
+    rospy.Service('robodart_control/say_sentence_1', Empty, my_robodart_control.say_sentence_1)
+    rospy.Service('robodart_control/say_sentence_2', Empty, my_robodart_control.say_sentence_2)
     rospy.Service('robodart_control/start_looking_around', Empty, my_robodart_control.start_looking_around)
     rospy.Service('robodart_control/stop_looking_around', Empty, my_robodart_control.stop_looking_around)
     rospy.Service('robodart_control/reset_to_arrow_1', Empty, my_robodart_control.reset_to_arrow_1)
