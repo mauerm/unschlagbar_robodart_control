@@ -100,6 +100,8 @@ class Robodart_control():
   scene = None
   
   log_file = None
+  
+  lookAroundGoal = None
 
  
   def __init__(self):
@@ -132,6 +134,8 @@ class Robodart_control():
     self.actionClientHome.wait_for_server()
     self.actionClientLeft = actionlib.SimpleActionClient('robodart_control/look_at_left_magazin', EmptyAction)
     self.actionClientLeft.wait_for_server()
+    self.actionClientAround = actionlib.SimpleActionClient('robodart_control/look_around', EmptyAction)
+    self.actionClientAround.wait_for_server()
 
     self.load_camera_dart_offset_from_file()
     self.vision_set_camera_dart_offset()
@@ -575,6 +579,29 @@ class Robodart_control():
     self.reset_dart_camera_offset()
     return []
   
+  def say_something(self, req):
+    say("Ich sage etwas.")
+    return []
+  
+  def start_looking_around(self, req):
+    if self.lookAroundGoal is None:
+      self.lookAroundGoal = EmptyActionGoal()
+      self.actionClientAround.send_goal(self.lookAroundGoal)
+    else:
+      rospy.logwarn("Looking around already started!")
+    return []
+  
+  def stop_looking_around(self, req):
+    if self.lookAroundGoal is not None:
+      self.actionClientAround.cancel_all_goals()
+      self.lookAroundGoal = None
+    else:
+      rospy.loginfo("Not looking around.")
+    return []
+  
+  def reset_to_arrow_1(self, req):
+    self.current_dart_number = 0
+    return []
   
 def exit():
 

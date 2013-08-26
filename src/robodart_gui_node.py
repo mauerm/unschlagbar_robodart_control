@@ -64,8 +64,8 @@ def get_bullseye_center_offset():
   resp = self.call_service('/robodart_vision/get_bullseye_center_offset', Point)
   if resp is None:
     print "No bullseye center offset received!, no circles detected?"
-    return [0,0]
-  return [resp.x, resp.y]
+    return resp
+  return resp
 
 def reset_to_arrow_1():
   resp = call_service('/robodart_control/reset_to_arrow_1', Empty)
