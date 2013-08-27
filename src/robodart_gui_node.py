@@ -21,7 +21,7 @@ def throw_dart():
   return resp
 
 def throw_dart_with_old_offset_callback():
-  resp = call_service('/robodart_control/throw_dart_with_old_offset_callback', Empty)
+  resp = call_service('/robodart_control/throw_dart_with_old_offset', Empty)
   return resp
 
 def throw_dart_from_drop_position():
