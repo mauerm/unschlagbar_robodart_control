@@ -394,7 +394,7 @@ class Robodart_control():
     self.open_gripper()
     '''
   def pickup_dart(self):
-    say("Ich hole mir Pfeil nummer " + str(self.current_dart_number + 1))
+    say("Hole Pfeil nummer " + str(self.current_dart_number + 1))
 
     print 'Starting Pickup dart'
 
