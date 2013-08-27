@@ -545,9 +545,24 @@ class Robodart_control():
     
     self.group.set_pose_target(p, self.GRIPPER_FRAME)
     
-    retVal = False
-    while retVal is False:
-        retVal = self.group.go()
+    max_trys = 10
+    while max_trys > 0:
+      
+      retVal = self.group.go()
+      if retVal is True:
+        break
+    
+      
+      max_trys -= 1
+        
+    if max_trys == 0:
+      say('Fehler, Fehler: Ich kann die Zielposition nicht erreichen! ')
+ 
+      time.sleep(10)
+    
+      raise Exception('Target position not reachable.')
+        
+        
     
 
     print "move to position", p.pose.position
