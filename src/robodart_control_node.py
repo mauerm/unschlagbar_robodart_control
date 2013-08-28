@@ -111,6 +111,9 @@ class Robodart_control():
     print "Package dir = ", self.package_dir
     
     self.load_camera_dart_offset_from_file()
+
+    #todo remove
+    self.camera_dart_offset = [0.149,0]
     
     #TODOc comment out
     #return
@@ -190,8 +193,8 @@ class Robodart_control():
     time.sleep(2)   
     
     total_offset_to_move = [0,0]
-    total_offset_to_move[0] = bullseye_center_offset[0] - self.camera_dart_offset[0]
-    total_offset_to_move[1] = bullseye_center_offset[1] - self.camera_dart_offset[1]
+    total_offset_to_move[0] = -bullseye_center_offset[0] + self.camera_dart_offset[0]
+    total_offset_to_move[1] = -bullseye_center_offset[1] + self.camera_dart_offset[1]
 
     print 'total offset to move',total_offset_to_move
     
@@ -217,12 +220,13 @@ class Robodart_control():
 
     time.sleep(1)
     say("Erfasse Pfeil!")
+    self.move_to_drop_position()
     time.sleep(5)
 
     print "Old Camera Dart Offset", self.camera_dart_offset
     
     
-    self.move_to_drop_position()
+    
 
     self.last_camera_dart_offset = self.get_dart_center_offset()
     
@@ -371,7 +375,7 @@ class Robodart_control():
 
   def reset_dart_camera_offset(self):
     print "reset_dart_camera_offset"
-    self.camera_dart_offset[0] = 0
+    self.camera_dart_offset[0] = 0.14
     self.camera_dart_offset[1] = 0
 
     self.save_camera_dart_offset_to_file()
@@ -449,7 +453,7 @@ class Robodart_control():
     print "Open Gripper"
     goal = GripperCommandGoal()
     #positition open max 0.3
-    goal.command.position = 0.0
+    goal.command.position = 0.1
     self.client.send_goal(goal)
     
   def close_gripper(self):
@@ -734,6 +738,14 @@ class Robodart_control():
     say("Ach Du Scheisse.  Echt jetzt?  Was mach ich denn dann hier?")
     return []
   
+  
+  
+  def say_achherje_callback(self, req):
+    self.look_sad()
+    time.sleep(1)
+    say("Ach herr je")
+    return []
+  
   def start_looking_around(self, req):
     if self.lookAroundGoal is None:
       self.lookAroundGoal = EmptyActionGoal()
@@ -785,6 +797,9 @@ if __name__ == '__main__':
     rospy.Service('robodart_control/start_looking_around', Empty, my_robodart_control.start_looking_around)
     rospy.Service('robodart_control/stop_looking_around', Empty, my_robodart_control.stop_looking_around)
     rospy.Service('robodart_control/reset_to_arrow_1', Empty, my_robodart_control.reset_to_arrow_1)
+    rospy.Service('robodart_control/say_achherje', Empty, my_robodart_control.say_achherje_callback)
+    
+    
     
     
   except rospy.ROSInterruptException: pass
