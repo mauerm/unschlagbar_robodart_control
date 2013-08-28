@@ -77,6 +77,8 @@ class Robodart_control():
   ##CONSTANDS END
   
   package_dir = None
+  
+  last_throw_position = AIMING_CENTER_POSITION
 
   last_position = [0,0]
   last_z_position = 0
@@ -193,8 +195,11 @@ class Robodart_control():
     time.sleep(2)   
     
     total_offset_to_move = [0,0]
-    total_offset_to_move[0] = -bullseye_center_offset[0] + self.camera_dart_offset[0]
-    total_offset_to_move[1] = -bullseye_center_offset[1] + self.camera_dart_offset[1]
+    total_offset_to_move[0] = bullseye_center_offset[0] - self.camera_dart_offset[0]
+    total_offset_to_move[1] = bullseye_center_offset[1] - self.camera_dart_offset[1]
+    
+    total_offset_to_move[0] += self.last_throw_position[0]
+    total_offset_to_move[1] += self.last_throw_position[1]
 
     print 'total offset to move',total_offset_to_move
     
@@ -203,7 +208,11 @@ class Robodart_control():
     self.look_at_dartboard()
     
     self.move_to_drop_position()
-    self.move_relative_to_last_position_in_robot_frame(total_offset_to_move)
+    
+    self.move_to_position_in_robot_frame(total_offset_to_move)
+    #self.move_relative_to_last_position_in_robot_frame(total_offset_to_move)
+    
+    self.last_throw_position = self.last_position
 
 
     say("Vorsicht. Abwurf in.")
