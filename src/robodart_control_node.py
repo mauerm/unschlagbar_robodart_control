@@ -74,6 +74,7 @@ class Robodart_control():
   move_away_after_pickup_offset = 0.03 #Distance to move away from dart horizontally after pickup
   
   camera_dart_offset_persistent_filename = 'camera_dart_offset.persistent'
+  last_throw_position_persistent_filename = 'last_throw_position.persistent'
   ##CONSTANDS END
   
   package_dir = None
@@ -113,9 +114,7 @@ class Robodart_control():
     print "Package dir = ", self.package_dir
     
     self.load_camera_dart_offset_from_file()
-
-    #todo remove
-    self.camera_dart_offset = [0.149,0]
+    self.load_last_throw_position_from_file()
     
     #TODOc comment out
     #return
@@ -166,10 +165,14 @@ class Robodart_control():
   def throw_dart(self, use_last_offset = True):
     #Center the dartboard according to the previously calibrated dart_center offset
     
-    if use_last_offset and self.current_dart_number != 0:
+    take_last_throw_position = False
+    
+    if use_last_offset:
       if (self.last_camera_dart_offset[0] == 0 and self.last_camera_dart_offset[1] == 0):
-          print "I don't set the new Offset becouse i think i didn't find an Dart"
+          print "I don't set the new Offset because i think i didn't find an Dart"
+          take_last_throw_position = True
       else:
+        
         self.camera_dart_offset[0] = self.last_camera_dart_offset[0]
         self.camera_dart_offset[1] = self.last_camera_dart_offset[1]
         self.save_camera_dart_offset_to_file()
@@ -198,8 +201,12 @@ class Robodart_control():
     total_offset_to_move[0] = bullseye_center_offset[0] - self.camera_dart_offset[0]
     total_offset_to_move[1] = bullseye_center_offset[1] - self.camera_dart_offset[1]
     
-    total_offset_to_move[0] += self.last_throw_position[0]
-    total_offset_to_move[1] += self.last_throw_position[1]
+    if take_last_throw_position or not use_last_offset:
+      total_offset_to_move[0] = self.last_throw_position[0]
+      total_offset_to_move[1] = self.last_throw_position[1]
+    else:
+      total_offset_to_move[0] += self.last_throw_position[0]
+      total_offset_to_move[1] += self.last_throw_position[1]
 
     print 'total offset to move',total_offset_to_move
     
@@ -213,7 +220,7 @@ class Robodart_control():
     #self.move_relative_to_last_position_in_robot_frame(total_offset_to_move)
     
     self.last_throw_position = self.last_position
-
+    self.save_last_throw_position_to_file()
 
     say("Vorsicht. Abwurf in.")
     time.sleep(2)
@@ -246,6 +253,8 @@ class Robodart_control():
       log_file.write(';Dart_No:;' + str(self.current_dart_number))
 
       log_file.write(';total offset to move:;' + str(total_offset_to_move))
+
+      log_file.write(';last_throw_position:;' + str(self.last_throw_position))
       
       import datetime
       timestamp = str(datetime.datetime.now())
@@ -262,99 +271,7 @@ class Robodart_control():
        
     self.move_home()
     
-  def throw_dart2(self, use_last_offset = True):
-    #Center the dartboard according to the previously calibrated dart_center offset
-    
-    if use_last_offset and self.current_dart_number != 0:
-      if (self.last_camera_dart_offset[0] == 0 and self.last_camera_dart_offset[1] == 0):
-          print "I don't set the new Offset becouse i think i didn't find an Dart"
-      else:
-        self.camera_dart_offset[0] = self.last_camera_dart_offset[0]
-        self.camera_dart_offset[1] = self.last_camera_dart_offset[1]
-        self.save_camera_dart_offset_to_file()
-        
-      print "Control: Adjusted Camera Dart Offset: ",self.camera_dart_offset
-    
-    else:
-      print 'Warning Offset was not adjusted!!!!!'
-      
-
-    
-    #self.look_at_dartboard()
-    
-    #self.move_to_drop_position()
-
-    say("Erfasse Zielscheibe!")
-    time.sleep(5)
-    self.take_reference_picture()
-    
-    bullseye_center_offset = self.get_bullseye_center_offset()
-
-    say("Zielscheibe erkannt!")
-    time.sleep(2)   
-    
-    total_offset_to_move = [0,0]
-    total_offset_to_move[0] = bullseye_center_offset[0] - self.camera_dart_offset[0]
-    total_offset_to_move[1] = bullseye_center_offset[1] - self.camera_dart_offset[1]
-
-    print 'total offset to move',total_offset_to_move
-    
-    ##delete
-    self.current_dart_number += 1
-    
-    #self.pickup_dart()
-
-    #self.look_at_dartboard()
-    
-    #self.move_to_drop_position()
-    #self.move_relative_to_last_position_in_robot_frame(total_offset_to_move)
-
-
-    say("Vorsicht. Abwurf in.")
-    time.sleep(2)
-    say("Drei")
-    time.sleep(1)
-    say("zwei")
-    time.sleep(1)
-    say("eins")
-    time.sleep(1)
-    say("Abwurf!")
-
-    #self.open_gripper()
-
-    time.sleep(1)
-    say("Erfasse Pfeil!")
-    time.sleep(5)
-
-    print "Old Camera Dart Offset", self.camera_dart_offset
-    
-    
-    #self.move_to_drop_position()
-
-    self.last_camera_dart_offset = self.get_dart_center_offset()
-    
-    with open(roslib.packages.get_pkg_dir(PACKAGE) + '/log_file.log', 'a') as log_file:
-      
-      log_file.write(';Camera_dart_offset:;' + str(self.camera_dart_offset[0]) + ';' + str(self.camera_dart_offset[1]))
-    
-      log_file.write(';Dart_No:;' + str(self.current_dart_number))
-
-      log_file.write(';total offset to move:;' + str(total_offset_to_move))
-      
-      import datetime
-      timestamp = str(datetime.datetime.now())
-      
-      log_file.write(';Last Camera Dart Offset: ;' + str(self.last_camera_dart_offset[0]) + ';' + str(self.last_camera_dart_offset[1]))
-      print "Control: Last Camera Dart Offset: ",self.last_camera_dart_offset
-    
-      
-      log_file.write(';timestamp;' + timestamp + '\n')
-      
-    say("Pfeil erkannt.")
-       
-    #self.look_at_home()
-       
-    #self.move_home()
+  
   
   def throw_dart_with_old_offset(self):
     self.throw_dart(False)
@@ -386,8 +303,13 @@ class Robodart_control():
     print "reset_dart_camera_offset"
     self.camera_dart_offset[0] = 0.14
     self.camera_dart_offset[1] = 0
-
+    
     self.save_camera_dart_offset_to_file()
+    
+    self.last_throw_position[0] = self.AIMING_CENTER_POSITION[0]
+    self.last_throw_position[1] = self.AIMING_CENTER_POSITION[1]
+
+    self.save_last_throw_position_to_file()
     
 
   def center_dart_board(self):
@@ -407,7 +329,7 @@ class Robodart_control():
     self.open_gripper()
     '''
   def pickup_dart(self):
-    say("Hole Pfeil nummer " + str(self.current_dart_number + 1))
+    say("Hole Pfeil")
 
     print 'Starting Pickup dart'
 
@@ -618,7 +540,20 @@ class Robodart_control():
     except (IOError):
       print "Could not read persistent camera dart offset"
 
-    print "Offset loaded from file", self.camera_dart_offset
+    print "Offset loaded from file", self.camera_dart_offset  
+    
+    
+  def save_last_throw_position_to_file(self):
+    
+    pickle.dump(self.last_throw_position, open(self.package_dir + self.last_throw_position_persistent_filename, 'wb'))
+    
+  def load_last_throw_position_from_file(self):
+    try:
+      self.last_throw_position = pickle.load(open(self.package_dir + self.last_throw_position_persistent_filename, 'rb'))
+    except (IOError):
+      print "Could not read persistent camera dart offset"
+
+    print "Throw Position loaded from file", self.last_throw_position
     
   '''
   def save_current_gripper_position(self):
@@ -628,7 +563,6 @@ class Robodart_control():
     self.saved_positions[name] = self.get_current_gripper_position()
     pickle.dump(self.saved_positions, open('positions.p', 'wb'))
   '''
-    
 
   '''
   def get_gripper_position_by_name(self, name):
