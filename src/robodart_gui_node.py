@@ -59,6 +59,10 @@ def say_sentence_2():
 def say_achherje():
   resp = call_service('/robodart_control/say_achherje', Empty)
   return resp
+
+def pickup_dart():
+  resp = call_service('robodart_control/pickup_dart', Empty)
+  return resp
   
   
 def start_looking_around():
@@ -162,5 +166,10 @@ if __name__ == '__main__':
 
   mm_btn = Button(gui, command = exit, text = 'Exit', height=1, width=width)
   mm_btn.grid(row=17, column=0)
+
+  mm_btn = Button(gui, command = pickup_dart, text = 'Pickup Dart', height=1, width=width)
+  mm_btn.grid(row=18, column=0)
+
+
 
   gui.mainloop()

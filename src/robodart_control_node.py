@@ -371,6 +371,11 @@ class Robodart_control():
     #self.move_relative_to_last_position_in_robot_frame([self.move_away_after_pickup_offset,0])
 
 
+  def pickup_dart_req(self, req):
+    self.pickup_dart()
+    return []
+
+
   def move_home(self):  
     print 'Move to home position'  
     self.group.set_named_target('home_stable')
@@ -391,8 +396,8 @@ class Robodart_control():
     print "Close Gripper"
     goal = GripperCommandGoal()
     #position close max -0.44
-    #goal.command.position = -0.19
-    goal.command.position = -0.23 
+    goal.command.position = -0.7
+    #goal.command.position = -0.23 
     self.client.send_goal(goal)
        
   def move_relative_to_last_position_in_gripper_frame(self, offset_vector = (0,0), z_offset = 0):
@@ -741,7 +746,7 @@ if __name__ == '__main__':
     rospy.Service('robodart_control/stop_looking_around', Empty, my_robodart_control.stop_looking_around)
     rospy.Service('robodart_control/reset_to_arrow_1', Empty, my_robodart_control.reset_to_arrow_1)
     rospy.Service('robodart_control/say_achherje', Empty, my_robodart_control.say_achherje_callback)
-    
+    rospy.Service('robodart_control/pickup_dart', Empty, my_robodart_control.pickup_dart_req)
     
     
     

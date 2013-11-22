@@ -1,0 +1,165 @@
+iki@iki-laptop2:~/Desktop$ rosrun robodart_vision robodart_vision_node.py
+1053.71882421
+Package dir =  /home/iki/rosbuild_ws/robodart_vision/temp_images/2013-08-28 03:29:43.273426_
+All Services ready
+take_reference_picture()...
+get_bullseye_center_offset()...
+[ 784.5         495.5         153.17474365]
+Half x and y 640 480
+xyMId 640 480
+xyDiffIn pixel 144.5 15.5
+bullseye center offser: xyDiffInRobotFrame 0.133702889972 -0.0143418324883
+bullseye center offset: camera_dart_offset [0.0, 0.0]
+get_dart_center_offset()
+[ 796.5         493.5         105.39686584]
+length1 497
+length2 497
+Infos...
+xStart:  547.926465
+xEnd:  1044.926465
+_______________
+yStart:  244.926465
+yEnd:  741.926465
+ylength 497
+xlength 497
+Std_dev_x, Std_dev_y 16.4649819812 52.4645653012
+[INFO] [WallTime: 1377653463.204703] Number of detected Pixels for erod=4: 77
+Std_dev_x, Std_dev_y 6.24050298862 10.4454364608
+[INFO] [WallTime: 1377653463.223697] Number of detected Pixels for erod=5: 14
+Std_dev_x, Std_dev_y 5.52016505389 9.11805291106
+Dart detected
+x_median 208.5
+x_median + min_loc_x 208.5
+Pixel per meter 1080.7545
+xOffset 116.426465
+yOffset -10.573535
+XYOffsetInRObotFrame [0.10772702311209438, 0.009783475340606949]
+take_reference_picture()...
+get_bullseye_center_offset()...
+[ 784.5         495.5         105.35890961]
+Half x and y 640 480
+xyMId 640 480
+xyDiffIn pixel 144.5 15.5
+bullseye center offser: xyDiffInRobotFrame 0.133702889972 -0.0143418324883
+bullseye center offset: camera_dart_offset [0.0, 0.0]
+get_dart_center_offset()
+[ 793.5         494.5         201.25233459]
+[ 792.5         492.5         153.31176758]
+[ 794.5         502.5         252.82504272]
+length1 497
+length2 497
+Infos...
+xStart:  544.926465
+xEnd:  1041.926465
+_______________
+yStart:  247.926465
+yEnd:  744.926465
+ylength 497
+xlength 497
+Std_dev_x, Std_dev_y 1.90515868883 1.66378351446
+Dart detected
+x_median 276.0
+x_median + min_loc_x 276.0
+Pixel per meter 1080.7545
+xOffset 180.926465
+yOffset 40.926465
+XYOffsetInRObotFrame [0.16740755185382064, -0.03786841970123651]
+take_reference_picture()...
+get_bullseye_center_offset()...
+[ 784.5         493.5         200.76478577]
+[ 789.5        485.5        256.8744812]
+Half x and y 640 480
+xyMId 640 480
+xyDiffIn pixel 147.0 9.5
+bullseye center offser: xyDiffInRobotFrame 0.13601608876 -0.00879015539607
+bullseye center offset: camera_dart_offset [0.0, 0.0]
+get_dart_center_offset()
+[ 797.5         491.5         200.68009949]
+length1 497
+length2 497
+Infos...
+xStart:  548.926465
+xEnd:  1045.926465
+_______________
+yStart:  242.926465
+yEnd:  739.926465
+ylength 497
+xlength 497
+Std_dev_x, Std_dev_y 5.20625361862 7.91063683098
+Dart detected
+x_median 263.0
+x_median + min_loc_x 263.0
+Pixel per meter 1080.7545
+xOffset 171.926465
+yOffset -27.073535
+XYOffsetInRObotFrame [0.15908003621544023, 0.025050587344304365]
+take_reference_picture()...
+get_bullseye_center_offset()...
+[ 784.5         494.5         200.68009949]
+[ 782.5         502.5         252.83294678]
+[ 788.5         485.5         256.25476074]
+Half x and y 640 480
+xyMId 640 480
+xyDiffIn pixel 145.166666667 14.1666666667
+bullseye center offser: xyDiffInRobotFrame 0.134319742982 -0.0131081264678
+bullseye center offset: camera_dart_offset [0.0, 0.0]
+get_dart_center_offset()
+[ 796.5         489.5         177.06637573]
+length1 497
+length2 497
+Infos...
+xStart:  547.926465
+xEnd:  1044.926465
+_______________
+yStart:  240.926465
+yEnd:  737.926465
+ylength 497
+xlength 497
+Std_dev_x, Std_dev_y 13.7789898728 23.1314297433
+[INFO] [WallTime: 1377653659.994904] Number of detected Pixels for erod=4: 186
+Std_dev_x, Std_dev_y 14.6895062284 23.7521073956
+[INFO] [WallTime: 1377653660.017747] Number of detected Pixels for erod=5: 89
+Std_dev_x, Std_dev_y 14.7866415434 23.1276764367
+[INFO] [WallTime: 1377653660.028427] Number of detected Pixels for erod=6: 58
+Std_dev_x, Std_dev_y 12.2615119197 21.4862347568
+[INFO] [WallTime: 1377653660.075267] Number of detected Pixels for erod=7: 26
+Std_dev_x, Std_dev_y 1.04909089977 1.21626063853
+Dart detected
+x_median 171.0
+x_median + min_loc_x 171.0
+Pixel per meter 1080.7545
+xOffset 78.926465
+yOffset 46.926465
+XYOffsetInRObotFrame [0.07302904128550934, -0.04342009679349011]
+take_reference_picture()...
+get_bullseye_center_offset()...
+[ 784.5         493.5         128.70314026]
+[ 787.5         485.5         255.65699768]
+[ 791.5        485.5        257.8536377]
+Half x and y 640 480
+xyMId 640 480
+xyDiffIn pixel 147.833333333 8.16666666667
+bullseye center offser: xyDiffInRobotFrame 0.136787155023 -0.00755644937557
+bullseye center offset: camera_dart_offset [0.0, 0.0]
+get_dart_center_offset()
+[ 796.5         491.5         200.76478577]
+length1 497
+length2 497
+Infos...
+xStart:  547.926465
+xEnd:  1044.926465
+_______________
+yStart:  242.926465
+yEnd:  739.926465
+ylength 497
+xlength 497
+Std_dev_x, Std_dev_y 4.82205683737 12.3092460478
+[INFO] [WallTime: 1377653718.814829] Number of detected Pixels for erod=4: 112
+Std_dev_x, Std_dev_y 3.40780278695 10.3690924633
+[INFO] [WallTime: 1377653718.822087] Number of detected Pixels for erod=5: 44
+Std_dev_x, Std_dev_y 2.9568658332 9.48646696909
+Dart detected
+x_median 287.0
+x_median + min_loc_x 287.0
+Pixel per meter 1080.7545
+

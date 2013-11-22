@@ -1,0 +1,286 @@
+I don't set the new Offset becouse i think i didn't find an Dart
+Control: Adjusted Camera Dart Offset:  [0.14, 0]
+look_at_dartboard
+Move to drop position
+move to position x: 0.478
+y: 0
+z: 0.4
+Erfasse Zielscheibe!
+Zielscheibe erkannt!
+total offset to move [0.46355522091279744, -0.031767930027895616]
+Hole Pfeil nummer 2
+Starting Pickup dart
+Open Gripper
+Move above first dart pickup position of the right or left magazin depending on the number
+look_at_right_magazin
+Move above desired dart pickup position
+move to position x: -0.338
+y: -0.168
+z: 0.527
+Move to pickup position
+Move relative to last position:  [-0.338, -0.168] offset:  [0, 0]
+move to position x: -0.338
+y: -0.168
+z: 0.46
+New Position:  [-0.338, -0.168]
+Close Gripper
+Move above pickup position
+Move relative to last position:  [-0.338, -0.168] offset:  [0, 0]
+move to position x: -0.338
+y: -0.168
+z: 0.527
+New Position:  [-0.338, -0.168]
+look_at_home
+look_at_dartboard
+Move to drop position
+[ INFO] [1377653443.297153288]: ABORTED: Solution found but controller failed during execution
+move to position x: 0.478
+y: 0
+z: 0.4
+move to position x: 0.463555220913
+y: -0.0317679300279
+z: 0.4
+Vorsicht. Abwurf in.
+Drei
+zwei
+eins
+Abwurf!
+Open Gripper
+Erfasse Pfeil!
+Move to drop position
+move to position x: 0.478
+y: 0
+z: 0.4
+Old Camera Dart Offset [0.14, 0]
+Control: Last Camera Dart Offset:  [0.10772702311209438, 0.009783475340606949]
+Pfeil erkannt.
+look_at_home
+Move to home position
+Control: Adjusted Camera Dart Offset:  [0.10772702311209438, 0.009783475340606949]
+look_at_dartboard
+Move to drop position
+move to position x: 0.478
+y: 0
+z: 0.4
+Erfasse Zielscheibe!
+Zielscheibe erkannt!
+total offset to move [0.4895310877724774, -0.05589323785682438]
+Hole Pfeil nummer 3
+Starting Pickup dart
+Open Gripper
+Move above first dart pickup position of the right or left magazin depending on the number
+look_at_right_magazin
+Move above desired dart pickup position
+move to position x: -0.34
+y: -0.108
+z: 0.527
+Move to pickup position
+Move relative to last position:  [-0.34, -0.108] offset:  [0, 0]
+[ INFO] [1377653510.294295011]: ABORTED: Solution found but controller failed during execution
+move to position x: -0.34
+y: -0.108
+z: 0.46
+New Position:  [-0.34, -0.108]
+Close Gripper
+Move above pickup position
+Move relative to last position:  [-0.34, -0.108] offset:  [0, 0]
+move to position x: -0.34
+y: -0.108
+z: 0.527
+New Position:  [-0.34, -0.108]
+look_at_home
+look_at_dartboard
+Move to drop position
+move to position x: 0.478
+y: 0
+z: 0.4
+move to position x: 0.489531087772
+y: -0.0558932378568
+z: 0.4
+Vorsicht. Abwurf in.
+Drei
+zwei
+eins
+Abwurf!
+Open Gripper
+Erfasse Pfeil!
+Move to drop position
+move to position x: 0.478
+y: 0
+z: 0.4
+Old Camera Dart Offset [0.10772702311209438, 0.009783475340606949]
+Control: Last Camera Dart Offset:  [0.16740755185382064, -0.03786841970123651]
+Pfeil erkannt.
+look_at_home
+Move to home position
+Control: Adjusted Camera Dart Offset:  [0.16740755185382064, -0.03786841970123651]
+look_at_dartboard
+Move to drop position
+move to position x: 0.478
+y: 0
+z: 0.4
+Erfasse Zielscheibe!
+Zielscheibe erkannt!
+total offset to move [0.4581396246788701, -0.026814973551656084]
+Hole Pfeil nummer 4
+Starting Pickup dart
+Open Gripper
+Move above first dart pickup position of the right or left magazin depending on the number
+look_at_left_magazin
+Move above desired dart pickup position
+move to position x: -0.344
+y: 0.162
+z: 0.527
+Move to pickup position
+Move relative to last position:  [-0.344, 0.162] offset:  [0, 0]
+move to position x: -0.344
+y: 0.162
+z: 0.46
+New Position:  [-0.344, 0.162]
+Close Gripper
+Move above pickup position
+Move relative to last position:  [-0.344, 0.162] offset:  [0, 0]
+move to position x: -0.344
+y: 0.162
+z: 0.527
+New Position:  [-0.344, 0.162]
+look_at_home
+look_at_dartboard
+Move to drop position
+move to position x: 0.478
+y: 0
+z: 0.4
+move to position x: 0.458139624679
+y: -0.0268149735517
+z: 0.4
+Vorsicht. Abwurf in.
+Drei
+zwei
+eins
+Abwurf!
+Open Gripper
+Erfasse Pfeil!
+Move to drop position
+move to position x: 0.478
+y: 0
+z: 0.4
+Old Camera Dart Offset [0.16740755185382064, -0.03786841970123651]
+Control: Last Camera Dart Offset:  [0.15908003621544023, 0.025050587344304365]
+Pfeil erkannt.
+look_at_home
+Move to home position
+Control: Adjusted Camera Dart Offset:  [0.15908003621544023, 0.025050587344304365]
+look_at_dartboard
+Move to drop position
+move to position x: 0.478
+y: 0
+z: 0.4
+Erfasse Zielscheibe!
+Zielscheibe erkannt!
+total offset to move [0.4333793314454546, -0.06497368736378148]
+Hole Pfeil nummer 5
+Starting Pickup dart
+Open Gripper
+Move above first dart pickup position of the right or left magazin depending on the number
+look_at_left_magazin
+Move above desired dart pickup position
+move to position x: -0.344
+y: 0.221
+z: 0.527
+Move to pickup position
+Move relative to last position:  [-0.344, 0.221] offset:  [0, 0]
+move to position x: -0.344
+y: 0.221
+z: 0.46
+New Position:  [-0.344, 0.221]
+Close Gripper
+Move above pickup position
+Move relative to last position:  [-0.344, 0.221] offset:  [0, 0]
+move to position x: -0.344
+y: 0.221
+z: 0.527
+New Position:  [-0.344, 0.221]
+look_at_home
+look_at_dartboard
+Move to drop position
+move to position x: 0.478
+y: 0
+z: 0.4
+[ INFO] [1377653644.062777484]: ABORTED: Solution found but controller failed during execution
+move to position x: 0.433379331445
+y: -0.0649736873638
+z: 0.4
+Vorsicht. Abwurf in.
+Drei
+zwei
+eins
+Abwurf!
+Open Gripper
+Erfasse Pfeil!
+Move to drop position
+move to position x: 0.478
+y: 0
+z: 0.4
+Old Camera Dart Offset [0.15908003621544023, 0.025050587344304365]
+Control: Last Camera Dart Offset:  [0.07302904128550934, -0.04342009679349011]
+Pfeil erkannt.
+look_at_home
+Move to home position
+Control: Adjusted Camera Dart Offset:  [0.07302904128550934, -0.04342009679349011]
+look_at_dartboard
+Move to drop position
+move to position x: 0.478
+y: 0
+z: 0.4
+Erfasse Zielscheibe!
+Zielscheibe erkannt!
+total offset to move [0.49713744518297165, -0.02911003994585879]
+Hole Pfeil nummer 6
+Starting Pickup dart
+Open Gripper
+Move above first dart pickup position of the right or left magazin depending on the number
+look_at_left_magazin
+Move above desired dart pickup position
+move to position x: -0.344
+y: 0.279
+z: 0.527
+Move to pickup position
+Move relative to last position:  [-0.344, 0.279] offset:  [0, 0]
+move to position x: -0.344
+y: 0.279
+z: 0.46
+New Position:  [-0.344, 0.279]
+Close Gripper
+Move above pickup position
+Move relative to last position:  [-0.344, 0.279] offset:  [0, 0]
+move to position x: -0.344
+y: 0.279
+z: 0.527
+New Position:  [-0.344, 0.279]
+look_at_home
+look_at_dartboard
+Move to drop position
+move to position x: 0.478
+y: 0
+z: 0.4
+move to position x: 0.497137445183
+y: -0.0291100399459
+z: 0.4
+Vorsicht. Abwurf in.
+Drei
+zwei
+eins
+Abwurf!
+Open Gripper
+Erfasse Pfeil!
+Move to drop position
+move to position x: 0.478
+y: 0
+z: 0.4
+Old Camera Dart Offset [0.07302904128550934, -0.04342009679349011]
+Control: Last Camera Dart Offset:  [0.18036146506907907, 0.0023812392176021406]
+Pfeil erkannt.
+look_at_home
+Move to home position
+
+
